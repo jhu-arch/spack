@@ -172,7 +172,6 @@ class Namd(MakefilePackage):
 
     def edit(self, spec, prefix):
         self._edit_arch(spec, prefix)
-
         self._copy_arch_file('base')
 
         opts = ['--charm-base', spec['charmpp'].prefix]
@@ -212,6 +211,13 @@ class Namd(MakefilePackage):
             filter_file(r"^CHARM = \$\(CHARMBASE\)/\$\(CHARMARCH\)",
                         "CHARM = $(CHARMBASE)",
                         join_path(self.build_directory, "Make.config"))
+    
+    def setup_build_environment(self, env):
+        # customization: overcome failure to find fftw headers
+        if self.spec.variants['fftw'].value=='mkl':
+            fftw_include = os.path.join(
+                self.spec['mkl'].prefix,'mkl','include','fftw')
+        env.prepend_path('CPATH',fftw_include)
 
     def install(self, spec, prefix):
         with working_dir(self.build_directory):
