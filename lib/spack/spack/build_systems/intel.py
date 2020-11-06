@@ -740,6 +740,15 @@ class IntelPackage(PackageBase):
             # TODO: Confirm that this covers clang (needed on Linux only)
             gcc_version = Version(matches.groups()[1])
             if gcc_version >= ver('4.7'):
+            # rbradley rockfish customization follows
+            #   spec "intel-mkl threads=tbb" installs libtbb.so to 
+            #   compilers_and_libraries_X.Y.Z/linux/tbb/lib/intel64_lin/gcc4.8/libtbb.so
+            #   and not the 4.7 folder as expected by the abi check below
+            #! not sure of the exact constraint so I will just use >=9 (using 9.2.0)
+            #! consider following up at https://github.com/spack/spack/issues/18896
+            if gcc_version >= ver('9'):
+                abi = 'gcc4.8'
+            elif gcc_version >= ver('4.7'):
                 abi = 'gcc4.7'
             elif gcc_version >= ver('4.4'):
                 abi = 'gcc4.4'
