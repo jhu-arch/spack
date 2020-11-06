@@ -490,6 +490,10 @@ def copy_tree(src, dest, symlinks=True, ignore=None, _permissions=False):
                 if os.path.isdir(s):
                     mkdirp(d)
                 else:
+                    # rockfish note: the following fails with error 11 
+                    #   resource temporarily unavailable and we are not sure why
+                    #   but it can be fixed with: os.system('cp -a %s %s'%(s,d))
+                    #   hence I suspect this is a thread count issue or related
                     shutil.copy2(s, d)
 
             if _permissions:
