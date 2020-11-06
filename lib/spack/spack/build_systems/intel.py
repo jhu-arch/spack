@@ -739,7 +739,6 @@ class IntelPackage(PackageBase):
         elif matches:
             # TODO: Confirm that this covers clang (needed on Linux only)
             gcc_version = Version(matches.groups()[1])
-            if gcc_version >= ver('4.7'):
             # rbradley rockfish customization follows
             #   spec "intel-mkl threads=tbb" installs libtbb.so to 
             #   compilers_and_libraries_X.Y.Z/linux/tbb/lib/intel64_lin/gcc4.8/libtbb.so
