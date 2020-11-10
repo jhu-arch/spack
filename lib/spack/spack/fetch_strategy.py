@@ -822,7 +822,12 @@ class GitFetchStrategy(VCSFetchStrategy):
                 git(*clone_args)
                 repo_name = get_single_file('.')
                 self.stage.srcdir = repo_name
-                shutil.move(repo_name, self.stage.source_path)
+                # rockfish customization: this step fails across devices
+                #! shutil.move(repo_name, self.stage.source_path)
+                #! the following still fails with error 11 resource temporarily unavailable
+                #! shutil.copytree(repo_name, self.stage.source_path)
+                #! os.rmdir(repo_name)
+                os.system('cp -a %s %s'%(repo_name,self.stage.source_path))
 
             with working_dir(self.stage.source_path):
                 checkout_args = ['checkout', self.commit]

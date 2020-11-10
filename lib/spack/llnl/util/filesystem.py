@@ -494,7 +494,9 @@ def copy_tree(src, dest, symlinks=True, ignore=None, _permissions=False):
                     #   resource temporarily unavailable and we are not sure why
                     #   but it can be fixed with: os.system('cp -a %s %s'%(s,d))
                     #   hence I suspect this is a thread count issue or related
-                    shutil.copy2(s, d)
+                    #! shutil.copy2(s, d)
+                    #! switching to os.system for the future due to ongoing error 11 issues
+                    os.system('cp -a %s %s'%(s,d))
 
             if _permissions:
                 set_install_permissions(d)
