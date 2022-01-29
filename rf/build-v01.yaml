@@ -1,0 +1,43 @@
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  config:
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    lmod:
+      core_compilers:
+      - gcc@8.3.1
+      hash_length: 0
+      hierarchy:
+      - compiler
+      - mpi
+      whitelist:
+      - gcc
+      blacklist:
+      - '%gcc@8.3.1'
+      projections:
+        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
+    default:
+      lmod:
+        core_compilers:
+        - gcc@8.3.1
+        # the hash_length and blacklist_implicits options do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+  # EXTERNAL packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: intel@19.1.2.254 %gcc@8.3.1
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
