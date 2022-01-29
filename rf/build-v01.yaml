@@ -10,7 +10,7 @@ spack:
     - lmod
     lmod:
       core_compilers:
-      - gcc@8.3.1
+      - &gcc_back !osp_system_compiler
       hash_length: 0
       hierarchy:
       - compiler
@@ -18,13 +18,13 @@ spack:
       whitelist:
       - gcc
       blacklist:
-      - '%gcc@8.3.1'
+      - !cat ['%', *gcc_back]
       projections:
         all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
       lmod:
         core_compilers:
-        - gcc@8.3.1
+        - *gcc_back
         # the hash_length and blacklist_implicits options do not work above in the lmod
         #   section. instead they *must* be placed here in the default section
         hash_length: 0
@@ -35,9 +35,14 @@ spack:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/Intel/2020/
-        spec: intel@19.1.2.254 %gcc@8.3.1
+        spec: !spacecat [intel@19.1.2.254, !cat ['%', *gcc_back]]
     slurm:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/slurm/current
         spec: slurm@19.05.7
+  specs:
+  - !spacecat
+    - gcc@10.3.0 
+    - arch=linux-centos8-skylake_avx512
+    - !cat ['%', *gcc_back]
