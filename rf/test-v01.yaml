@@ -1,0 +1,47 @@
+spack:
+  # modules section with a blacklisted core compiler
+  config:
+    install_tree:
+      # these projections do not remove the hash in the original install location
+      projections:
+        all: '{compiler.name}/{compiler.version}/{name}/{version}'
+        ^mpi: '{compiler.name}/{compiler.version}/{mpi.name}/{mpi.version}/{name}/{version}'
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    lmod:
+      core_compilers:
+      - gcc@8.3.1
+      hash_length: 0
+      hierarchy:
+      - compiler
+      - mpi
+      whitelist:
+      - gcc
+      blacklist:
+      - '%gcc@8.3.1'
+      projections:
+        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
+    default:
+      lmod:
+        core_compilers:
+        - gcc@8.3.1
+        hash_length: 0
+        # do not put this in the lmod section. as with the hash_length, it DOES NOT WORK 
+        #   unless it is in the defaults
+        blacklist_implicits: true
+  # end modules modifications
+  # packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: intel@19.1.2.254 %gcc@8.3.1
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
