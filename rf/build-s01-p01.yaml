@@ -22,6 +22,7 @@ spack:
       projections:
         all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
+      arch_folder: false
       lmod:
         core_compilers:
         - *gcc_back
@@ -43,6 +44,6 @@ spack:
         spec: slurm@19.05.7
   specs:
   - !spacecat
-    - gcc@10.3.0 
+    - gcc@10.3.0 # 26min
     - arch=linux-centos8-skylake_avx512
     - !cat ['%', *gcc_back]
