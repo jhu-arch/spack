@@ -624,6 +624,8 @@ class Openmpi(AutotoolsPackage):
         if '~gpfs' in self.spec:
             env.set('ac_cv_header_gpfs_h', 'no')
             env.set('ac_cv_header_gpfs_fcntl_h', 'no')
+        # rbradley fix for https://github.com/spack/spack/issues/16874
+        env.prepend_path('CPATH','/usr/include/infiniband/')
 
     def configure_args(self):
         spec = self.spec
