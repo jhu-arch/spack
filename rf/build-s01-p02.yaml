@@ -1,0 +1,86 @@
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  config:
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    # see note below. we use the default section instead of an lmod section since many different 
+    #   modifications do not appear to work otherwise
+    default:
+      arch_folder: false
+      lmod:
+        hierarchy:
+          - compiler
+          - mpi
+          # it would be nice to use python here but only virtual packages are allowed
+        core_compilers:
+        - &gcc_back !osp_system_compiler
+        # see: https://spack.readthedocs.io/en/latest/module_file_support.html\
+        #   #blacklist-or-whitelist-specific-module-files
+        whitelist:
+        - gcc
+        blacklist:
+        - !compiler [*gcc_back]
+        core_compilers:
+        - *gcc_back
+        # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+        projections:
+          # module naming convention is upstream of "osp modules" so beware
+          ^python: 'py-{^python.version}/{name}/{version}'  
+          all: '{name}/{version}'
+  # EXTERNAL packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: !compiler [intel@19.1.2.254, *gcc_back]
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
+  specs:
+  # compiler: gcc 10
+  - - &gcc10 !cat
+      - gcc@10.3.0 
+      - arch=linux-centos8-skylake_avx512
+      - !compiler [*gcc_back]
+  # packages compiled with gcc 10
+  - !osp_compiled
+    compiler: *gcc10
+    specs:
+    - git
+    # pythons
+    - &py399 !cat 
+      - python@3.9.9 
+      - &pybase +bz2 +ctypes +dbm ~debug +ensurepip +libxml2 +lzma ~nis +optimizations +pic
+        +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
+    - &py3812 !cat [python@3.8.12, *pybase]
+  # mpi: openmpi 3
+  - - &ompi3 !cat
+      - openmpi@3.1.6
+      - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+        ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
+        +wrapper-rpath fabrics=verbs schedulers=slurm
+      - !depends [*py399]
+  # packages compiled with python 3.9.9
+  - !osp_python
+    base: *py399
+    specs: &py-mods
+    - py-setuptools
+    - py-wheel
+    # - !depends ['py-numpy', *intel-oneapi-mkl]
+    - py-pip
+    - py-cython
+  - !osp_python
+    base: *py3812
+    specs: *py-mods
+# - &intel-oneapi-mkl intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb
