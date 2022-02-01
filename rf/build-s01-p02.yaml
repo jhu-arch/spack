@@ -15,7 +15,7 @@ spack:
       lmod:
         hierarchy:
           - compiler
-          - mpi
+          # - mpi
           # it would be nice to use python here but only virtual packages are allowed
         core_compilers:
         - &gcc_back !osp_system_compiler
@@ -27,13 +27,21 @@ spack:
         - !compiler [*gcc_back]
         core_compilers:
         - *gcc_back
+        # we set python dependents as core_specs because you can move it later with "osp modules"
+        #! this method is failing with py-numpy which depends on python and openmpi
+        #! dev: there is no default openmpi as well
+        core_specs:
+        - '^mpi^python' 
+        - '^python'
         # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
         #   section. instead they *must* be placed here in the default section
         hash_length: 0
         blacklist_implicits: true
         projections:
+          # if we do not specify the projection, the hierarchical lmod feature will add hashes
           # module naming convention is upstream of "osp modules" so beware
-          ^python: 'py-{^python.version}/{name}/{version}'  
+          ^mpi^python: 'py-{^python.version}/{name}/{version}'
+          ^python: 'py-{^python.version}/{name}/{version}'
           all: '{name}/{version}'
   # EXTERNAL packages
   packages:
@@ -66,21 +74,31 @@ spack:
     - &py3812 !cat [python@3.8.12, *pybase]
   # mpi: openmpi 3
   - - &ompi3 !cat
-      - openmpi@3.1.6
-      - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
-        ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
-        +wrapper-rpath fabrics=verbs schedulers=slurm
+      - &ompi3-base !cat
+        - openmpi@3.1.6
+        # see modification to spack source with a path change to solve the perpetual problem
+        #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
+        - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+          ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
+          +wrapper-rpath fabrics=verbs schedulers=slurm
       - !depends [*py399]
+  - - &intel-oneapi-mkl !cat
+      - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
+      - !depends [*ompi3]
   # packages compiled with python 3.9.9
   - !osp_python
     base: *py399
     specs: &py-mods
     - py-setuptools
     - py-wheel
-    # - !depends ['py-numpy', *intel-oneapi-mkl]
+    # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
+    #   include the base for openmpi and mkl to avoid depending twice
+    - !cat
+      - py-numpy
+      - !depends [*intel-oneapi-mkl-base]
+      - !depends [*ompi3-base]
     - py-pip
     - py-cython
   - !osp_python
     base: *py3812
     specs: *py-mods
-# - &intel-oneapi-mkl intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb
