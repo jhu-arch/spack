@@ -18,7 +18,7 @@ spack:
       whitelist:
       - gcc
       blacklist:
-      - !cat ['%', *gcc_back]
+      - !compiler [*gcc_back]
       projections:
         all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
@@ -36,14 +36,15 @@ spack:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/Intel/2020/
-        spec: !spacecat [intel@19.1.2.254, !cat ['%', *gcc_back]]
+        spec: !cat [intel@19.1.2.254, !cat ['%', *gcc_back]]
     slurm:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/slurm/current
         spec: slurm@19.05.7
   specs:
-  - !spacecat
-    - gcc@10.3.0 # 26min
-    - arch=linux-centos8-skylake_avx512
-    - !cat ['%', *gcc_back]
+  # beware that we use lists of lists
+  - - !cat
+      - gcc@10.3.0 # 26min
+      - arch=linux-centos8-skylake_avx512
+      - !compiler [*gcc_back]
