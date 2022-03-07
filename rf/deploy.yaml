@@ -3,4 +3,4 @@ spack:
     install_tree:
       root: /apps/a
     module_roots: 
-      lmod: /apps/lmod
+      lmod: /apps/a/lmod
