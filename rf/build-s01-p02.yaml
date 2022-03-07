@@ -72,6 +72,10 @@ spack:
       - &pybase +bz2 +ctypes +dbm ~debug +ensurepip +libxml2 +lzma ~nis +optimizations +pic
         +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
     - &py3812 !cat [python@3.8.12, *pybase]
+    # R
+    - &r412 !cat
+      - r@4.1.2
+      - !depends [*py399]
   # mpi: openmpi 3
   - - &ompi3 !cat
       - &ompi3-base !cat
