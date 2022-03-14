@@ -27,12 +27,12 @@ spack:
         - !compiler [*gcc_back]
         core_compilers:
         - *gcc_back
-        # we set python dependents as core_specs because you can move it later with "osp modules"
-        #! this method is failing with py-numpy which depends on python and openmpi
-        #! dev: there is no default openmpi as well
+        # we set python and R dependents as core_specs because you can move it later with "osp modules"
+        #! dev: default openmpi is not working very well
         core_specs:
         - '^mpi^python' 
         - '^python'
+        - '^r'
         # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
         #   section. instead they *must* be placed here in the default section
         hash_length: 0
@@ -42,6 +42,7 @@ spack:
           # module naming convention is upstream of "osp modules" so beware
           ^mpi^python: 'py-{^python.version}/{name}/{version}'
           ^python: 'py-{^python.version}/{name}/{version}'
+          ^r: 'r-{^r.version}/{name}/{version}'
           all: '{name}/{version}'
   # EXTERNAL packages
   packages:
@@ -89,7 +90,7 @@ spack:
   - - &intel-oneapi-mkl !cat
       - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
       - !depends [*ompi3]
-  # packages compiled with python 3.9.9
+  # packages compiled for python 3.9.9
   - !osp_python
     base: *py399
     specs: &py-mods
@@ -103,6 +104,14 @@ spack:
       - !depends [*ompi3-base]
     - py-pip
     - py-cython
+  # packages compiled for Python 3.8.12
   - !osp_python
     base: *py3812
     specs: *py-mods
+  # packages compiled for R 4.1.2
+  - !osp_r
+    # note that R depends on Python above which manages redundancy
+    base: *r412
+    specs: &r-packages
+      - r-irkernel
+
