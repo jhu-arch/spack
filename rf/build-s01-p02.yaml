@@ -109,9 +109,10 @@ spack:
     base: *py3812
     specs: *py-mods
   # packages compiled for R 4.1.2
-  - !osp_r
-    # note that R depends on Python above which manages redundancy
-    base: *r412
-    specs: &r-packages
-      - r-irkernel
+  #! dev: deprecated pending more testing
+  #! - !osp_r
+  #!   # note that R depends on Python above which manages redundancy
+  #!   base: *r412
+  #!   specs: &r-packages
+  #!     - r-irkernel
 
