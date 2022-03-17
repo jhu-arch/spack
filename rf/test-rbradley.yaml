@@ -1,0 +1,6 @@
+spack:
+  config:
+    install_tree:
+      root: /data/spack/v2/dtest-$USER
+    module_roots: 
+      lmod: /data/spack/v2/dtest-$USER/lmod
