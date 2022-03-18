@@ -30,41 +30,14 @@ spack:
         #   section. instead they *must* be placed here in the default section
         hash_length: 0
         blacklist_implicits: true
-  # EXTERNAL packages
-  packages:
-    intel:
-      buildable: false
-      externals:
-      - prefix: /cm/shared/apps/Intel/2020/
-        spec: !cat [intel@19.1.2.254, !compiler [*gcc_back]]
-      - prefix: /cm/shared/apps/Intel/2021/
-        spec: !cat [intel@2021.4.0, !compiler [*gcc_back]]
-    slurm:
-      buildable: false
-      externals:
-      - prefix: /cm/shared/apps/slurm/current
-        spec: slurm@19.05.7
-  # beware that we use lists of lists
-  specs:
-  # compiler: intel@2021
-  - - &intel21 !cat
-      - intel@2021.4.0
-      - arch=linux-centos8-cascadelake
-      - !compiler [*gcc_back]
-  # packages compiled with intel 21
-  - !osp_compiled
-    compiler: *intel21
-    specs:
-    - git
-    # pythons
-    - &py399 !cat 
-      - python@3.9.9 
-      - &pybase +bz2 +ctypes +dbm ~debug +ensurepip +libxml2 +lzma ~nis +optimizations +pic
-        +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
-    - &py3812 !cat [python@3.8.12, *pybase]
+  #!!! dev
+  # beware: you cannot compile packages with intel@2021 until this superspec is merged and you
+  #   run spack install. after that you can proceed to the next part, build-s01-p04.yaml
   compilers:
   - compiler:
-      spec: intel@19.1.2.254
+      spec: !cat
+        - &intel-base intel@19.1.2.254
+        - !compiler [*gcc_back]
       paths:
         cc: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/icc
         cxx: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/icpc
@@ -76,42 +49,169 @@ spack:
       modules: []
       environment: {}
       extra_rpaths: []
-  - compiler:
-      spec: dpcpp@2021.4.0
-      paths:
-        cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
-        cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/dpcpp
-        f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
-        fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
-      flags: {}
-      operating_system: centos8
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-  - compiler:
-      spec: intel@2021.4.0
-      paths:
-        cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icc
-        cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icpc
-        f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/ifort
-        fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/ifort
-      flags: {}
-      operating_system: centos8
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
-  - compiler:
-      spec: oneapi@2021.4.0
-      paths:
-        cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
-        cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icpx
-        f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
-        fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
-      flags: {}
-      operating_system: centos8
-      target: x86_64
-      modules: []
-      environment: {}
-      extra_rpaths: []
+  #! - compiler:
+  #!     spec: !cat 
+  #!       - dpcpp@2021.4.0
+  #!       - !compiler [*gcc_back]
+  #!     paths:
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/dpcpp
+  #!       f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!       fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!     flags: {}
+  #!     operating_system: centos8
+  #!     target: x86_64
+  #!     modules: []
+  #!     environment: {}
+  #!     extra_rpaths: []
+  #! - compiler:
+  #!     spec: !cat
+  #!       - intel@2021.4.0
+  #!       - !compiler [*gcc_back]
+  #!     paths:
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icc
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icpc
+  #!       f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/ifort
+  #!       fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/ifort
+  #!     flags: {}
+  #!     operating_system: centos9
+  #!     target: x86_64
+  #!     modules: []
+  #!     environment: {}
+  #!     extra_rpaths: []
+  #! - compiler:
+  #!     spec: !cat
+  #!       - oneapi@2021.4.0
+  #!       - !compiler [*gcc_back]
+  #!     paths:
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icpx
+  #!       f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!       fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!     flags: {}
+  #!     operating_system: centos8
+  #!     target: x86_64
+  #!     modules: []
+  #!     environment: {}
+  #!     extra_rpaths: []
+  #! - compiler:                                                                                                 
+  #!     spec: oneapi@2022.0.0                                                                                   
+  #!     paths:                                                                                                  
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2022.0.2/linux/bin/icx                                        
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2022.0.2/linux/bin/icpx                                      
+  #!       f77: null                                                                                             
+  #!       fc: null                                                                                              
+  #!     flags: {}                                                                                               
+  #!     operating_system: centos8                                                                               
+  #!     target: x86_64                                                                                          
+  #!     modules: []                                                                                             
+  #!     environment: {}                                                                                         
+  #!     extra_rpaths: [] 
+  # EXTERNAL packages
+  packages:
+    #! intel:
+    #!   buildable: false
+    #!   externals:
+    #!   - prefix: /cm/shared/apps/Intel/2020/
+    #!     spec: !cat [intel@19.1.2.254, !compiler [*gcc_back]]
+    #!   - prefix: /cm/shared/apps/Intel/2021/
+    #!     spec: !cat [intel@2021.4.0, !compiler [*gcc_back]]
+    intel-oneapi-compilers:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2021/
+        spec: !cat 
+          - intel-oneapi-compilers@2021.4.0
+          #! - !compiler [*gcc_back]
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: !cat 
+          - *intel-base 
+          #! - !compiler [*gcc_back]
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
+  # beware that we use lists of lists
+  specs:
+
+  # SPECS FROM build-s01-p02.yaml
+  # dev: figure out how to import from another file since this was copied from rf/build-s01
+  #! - !import_yaml 
+  #!   from: rf/build-s01-p02.yaml
+  #!   what: [spack,specs]
+
+  # compiler: gcc 10
+  - - &gcc10 !cat
+      - gcc@10.3.0 
+      - arch=linux-centos8-skylake_avx512
+      - !compiler [*gcc_back]
+  # packages compiled with gcc 10
+  - !osp_compiled
+    compiler: *gcc10
+    specs: &gcc-specs
+    - git
+    # pythons
+    - &py399 !cat 
+      - python@3.9.9 
+      - &pybase +bz2 +ctypes +dbm ~debug +ensurepip +libxml2 +lzma ~nis +optimizations +pic
+        +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
+    - &py3812 !cat [python@3.8.12, *pybase]
+    # R
+    - &r412 !cat
+      - r@4.1.2
+      - !depends [*py399]
+  # mpi: openmpi 3
+  - - &ompi3 !cat
+      - &ompi3-base !cat
+        - openmpi@3.1.6
+        # see modification to spack source with a path change to solve the perpetual problem
+        #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
+        - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+          ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
+          +wrapper-rpath fabrics=verbs schedulers=slurm
+      - !depends [*py399]
+  - - &intel-oneapi-mkl !cat
+      - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
+      - !depends [*ompi3]
+  # packages compiled for python 3.9.9
+  - !osp_python
+    base: *py399
+    specs: &py-mods
+    - py-setuptools
+    - py-wheel
+    # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
+    #   include the base for openmpi and mkl to avoid depending twice
+    - !cat
+      - py-numpy
+      - !depends [*intel-oneapi-mkl-base]
+      - !depends [*ompi3-base]
+    - py-pip
+    - py-cython
+  # packages compiled for Python 3.8.12
+  - !osp_python
+    base: *py3812
+    specs: *py-mods
+  # packages compiled for R 4.1.2
+  - !osp_r
+    # note that R depends on Python above which manages redundancy
+    base: *r412
+    specs: &r-packages
+      - r-irkernel
+
+  # NEW SPECS for Intel
+
+  # compiler: intel
+  - - &intel !cat
+      - *intel-base
+      - arch=linux-centos8-cascadelake
+      # dev: do not add a backing compiler here. this fails for some reason but ultimately the
+      #   compiler's compiler is redundant for our purposes
+
+  # packages compiled with intel
+  - !osp_compiled
+    compiler: *intel
+    specs: *gcc-specs
