@@ -140,9 +140,9 @@ spack:
 
   # SPECS FROM build-s01-p02.yaml
   # dev: figure out how to import from another file since this was copied from rf/build-s01
-  #! - !import_yaml 
-  #!   from: rf/build-s01-p02.yaml
-  #!   what: [spack,specs]
+  - !include 
+    via: rf/build-s01-p02.yaml
+    what: [spack,specs]
 
   # compiler: gcc 10
   - - &gcc10 !cat
