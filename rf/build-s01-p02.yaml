@@ -25,8 +25,8 @@ spack:
         - gcc
         blacklist:
         - !compiler [*gcc_back]
-        core_compilers:
-        - *gcc_back
+        #! core_compilers:
+        #! - *gcc_back
         # we set python and R dependents as core_specs because you can move it later with "osp modules"
         #! dev: default openmpi is not working very well
         core_specs:
