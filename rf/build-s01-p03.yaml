@@ -1,3 +1,5 @@
+# use anchors from another file to avoid repetition
+!exclude _: !include rf/build-s01-p02.yaml
 spack:
   # CUSTOM MODULES
   # these modifications blacklist the system compiler to make Core packages
@@ -10,7 +12,7 @@ spack:
     - lmod
     lmod:
       core_compilers:
-      - &gcc_back !osp_system_compiler
+      - &gcc-back !system_compiler
       hash_length: 0
       hierarchy:
       - compiler
@@ -18,26 +20,23 @@ spack:
       whitelist:
       - gcc
       blacklist:
-      - !compiler [*gcc_back]
+      - !compiler [*gcc-back]
       projections:
         all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
       arch_folder: false
       lmod:
         core_compilers:
-        - *gcc_back
+        - *gcc-back
         # the hash_length and blacklist_implicits options do not work above in the lmod
         #   section. instead they *must* be placed here in the default section
         hash_length: 0
         blacklist_implicits: true
-  #!!! dev
-  # beware: you cannot compile packages with intel@2021 until this superspec is merged and you
-  #   run spack install. after that you can proceed to the next part, build-s01-p04.yaml
   compilers:
   - compiler:
       spec: !cat
         - &intel-base intel@19.1.2.254
-        - !compiler [*gcc_back]
+        - !compiler [*gcc-back]
       paths:
         cc: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/icc
         cxx: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/icpc
@@ -52,7 +51,7 @@ spack:
   #! - compiler:
   #!     spec: !cat 
   #!       - dpcpp@2021.4.0
-  #!       - !compiler [*gcc_back]
+  #!       - !compiler [*gcc-back]
   #!     paths:
   #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
   #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/dpcpp
@@ -67,7 +66,7 @@ spack:
   #! - compiler:
   #!     spec: !cat
   #!       - intel@2021.4.0
-  #!       - !compiler [*gcc_back]
+  #!       - !compiler [*gcc-back]
   #!     paths:
   #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icc
   #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icpc
@@ -82,7 +81,7 @@ spack:
   #! - compiler:
   #!     spec: !cat
   #!       - oneapi@2021.4.0
-  #!       - !compiler [*gcc_back]
+  #!       - !compiler [*gcc-back]
   #!     paths:
   #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
   #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icpx
@@ -113,105 +112,58 @@ spack:
     #!   buildable: false
     #!   externals:
     #!   - prefix: /cm/shared/apps/Intel/2020/
-    #!     spec: !cat [intel@19.1.2.254, !compiler [*gcc_back]]
+    #!     spec: !cat [intel@19.1.2.254, !compiler [*gcc-back]]
     #!   - prefix: /cm/shared/apps/Intel/2021/
-    #!     spec: !cat [intel@2021.4.0, !compiler [*gcc_back]]
+    #!     spec: !cat [intel@2021.4.0, !compiler [*gcc-back]]
     intel-oneapi-compilers:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/Intel/2021/
         spec: !cat 
-          - intel-oneapi-compilers@2021.4.0
-          #! - !compiler [*gcc_back]
+        - intel-oneapi-compilers@2021.4.0
     intel:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/Intel/2020/
         spec: !cat 
-          - *intel-base 
-          #! - !compiler [*gcc_back]
+        - *intel-base 
     slurm:
       buildable: false
       externals:
       - prefix: /cm/shared/apps/slurm/current
         spec: slurm@19.05.7
   # beware that we use lists of lists
-  specs:
-
-  # SPECS FROM build-s01-p02.yaml
-  # dev: figure out how to import from another file since this was copied from rf/build-s01
-  - !include 
-    via: rf/build-s01-p02.yaml
-    what: [spack,specs]
-
-  # compiler: gcc 10
-  - - &gcc10 !cat
-      - gcc@10.3.0 
-      - arch=linux-centos8-skylake_avx512
-      - !compiler [*gcc_back]
-  # packages compiled with gcc 10
-  - !osp_compiled
-    compiler: *gcc10
-    specs: &gcc-specs
-    - git
-    # pythons
-    - &py399 !cat 
-      - python@3.9.9 
-      - &pybase +bz2 +ctypes +dbm ~debug +ensurepip +libxml2 +lzma ~nis +optimizations +pic
-        +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
-    - &py3812 !cat [python@3.8.12, *pybase]
-    # R
-    - &r412 !cat
-      - r@4.1.2
-      - !depends [*py399]
-  # mpi: openmpi 3
-  - - &ompi3 !cat
-      - &ompi3-base !cat
-        - openmpi@3.1.6
-        # see modification to spack source with a path change to solve the perpetual problem
-        #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
-        - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
-          ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
-          +wrapper-rpath fabrics=verbs schedulers=slurm
-      - !depends [*py399]
-  - - &intel-oneapi-mkl !cat
-      - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
-      - !depends [*ompi3]
-  # packages compiled for python 3.9.9
-  - !osp_python
-    base: *py399
-    specs: &py-mods
-    - py-setuptools
-    - py-wheel
-    # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
-    #   include the base for openmpi and mkl to avoid depending twice
-    - !cat
-      - py-numpy
-      - !depends [*intel-oneapi-mkl-base]
-      - !depends [*ompi3-base]
-    - py-pip
-    - py-cython
-  # packages compiled for Python 3.8.12
-  - !osp_python
-    base: *py3812
-    specs: *py-mods
-  # packages compiled for R 4.1.2
-  - !osp_r
-    # note that R depends on Python above which manages redundancy
-    base: *r412
-    specs: &r-packages
-      - r-irkernel
-
-  # NEW SPECS for Intel
-
-  # compiler: intel
-  - - &intel !cat
-      - *intel-base
-      - arch=linux-centos8-cascadelake
-      # dev: do not add a backing compiler here. this fails for some reason but ultimately the
-      #   compiler's compiler is redundant for our purposes
-
-  # packages compiled with intel
-  - !osp_compiled
-    compiler: *intel
-    specs: *gcc-specs
+  specs: !flatten
+  - *gcc-all
+  - &intel-all
+    # merge the previous step
+    # compiler: intel
+    - - &intel !cat
+        - *intel-base
+        - arch=linux-centos8-cascadelake
+        # dev: not sure why must use explicit compiler here instead of backing (*gcc-base) compiler
+        - !spec {compiler: 'gcc@9.3.0'}
+    # packages compiled with intel
+    - !compiled
+      compiler: *intel
+      specs: *gcc-specs
+    # intel Python
+    - !compiled
+      compiler: *intel
+      specs:
+      - &py399i !cat [python@3.9.9, *pybase]
+      - &py3812i !cat [python@3.8.12, *pybase]
+      - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
+    # packages compiled for python 3.9.9
+    - !loop_depends
+      base: *py399i 
+      specs: *py-mods
+    # packages compiled for Python 3.8.12
+    - !loop_depends
+      base: *py3812i
+      specs: *py-mods
+    # packages compiled for R 4.1.2
+    - !loop_depends
+      # note that R depends on Python above which manages redundancy
+      base: *r412i
+      specs: *r-packages
