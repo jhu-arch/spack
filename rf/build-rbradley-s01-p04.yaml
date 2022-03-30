@@ -33,4 +33,4 @@ spack:
         hash_length: 0
         blacklist_implicits: true
   specs: 
-  - - intel-parallel-studio@cluster.2020.4
+  - - !spec {name: intel-parallel-studio@cluster.2020.4, compiler: *gcc-back}
