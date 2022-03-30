@@ -134,6 +134,7 @@ spack:
         spec: slurm@19.05.7
   # beware that we use lists of lists
   specs: !flatten
+  - - - *gcc10
   - *gcc-all
   - &intel-all
     # merge the previous step
