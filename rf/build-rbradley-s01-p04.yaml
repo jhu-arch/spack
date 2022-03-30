@@ -1,0 +1,36 @@
+# use anchors from another file to avoid repetition
+!exclude _: !include rf/build-s01-p03.yaml
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  config:
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    lmod:
+      core_compilers:
+      - &gcc-back !system_compiler
+      hash_length: 0
+      hierarchy:
+      - compiler
+      - mpi
+      whitelist:
+      - gcc
+      blacklist:
+      - !compiler [*gcc-back]
+      projections:
+        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
+    default:
+      arch_folder: false
+      lmod:
+        core_compilers:
+        - *gcc-back
+        # the hash_length and blacklist_implicits options do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+  specs: 
+  - - intel-parallel-studio@cluster.2020.4
