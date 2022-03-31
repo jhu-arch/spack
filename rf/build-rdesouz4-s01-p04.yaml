@@ -1,0 +1,127 @@
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  config:
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    # see note below. we use the default section instead of an lmod section since many different 
+    #   modifications do not appear to work otherwise
+    default:
+      arch_folder: false
+      lmod:
+        hierarchy:
+          - compiler
+          # - mpi
+          # it would be nice to use python here but only virtual packages are allowed
+        core_compilers:
+        - &gcc-back !system_compiler
+        # see: https://spack.readthedocs.io/en/latest/module_file_support.html\
+        #   #blacklist-or-whitelist-specific-module-files
+        whitelist:
+        - gcc
+        blacklist:
+        - *gcc-back
+        #! core_compilers:
+        #! - *gcc-back
+        # we set python and R dependents as core_specs because you can move it later with "osp modules"
+        #! dev: default openmpi is not working very well
+        core_specs:
+        - '^mpi^python' 
+        - '^python'
+        - '^r'
+        # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+        projections:
+          # if we do not specify the projection, the hierarchical lmod feature will add hashes
+          # module naming convention is upstream of "osp modules" so beware
+          ^mpi^python: 'py-{^python.version}/{name}/{version}'
+          ^python: 'py-{^python.version}/{name}/{version}'
+          ^r: 'r-{^r.version}/{name}/{version}'
+          all: '{name}/{version}'
+  # EXTERNAL packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: !spec {name: intel@19.1.2.254, compiler: *gcc-back}
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
+  specs: !flatten
+  # compiler: gcc 10
+  - - - &gcc10 !cat
+        - gcc@10.3.0 
+        - arch=linux-centos8-skylake_avx512
+        - !spec {compiler: *gcc-back}
+  - &gcc-all
+    # packages compiled with gcc 10
+    - !compiled
+      compiler: *gcc10
+      specs: !flatten
+      - &gcc-specs
+        - git
+      # pythons
+      - - &py399 !cat 
+          - python@3.9.9 
+          - &pybase +bz2 +ctypes +dbm ~debug +ensurepip +libxml2 +lzma ~nis +optimizations +pic
+            +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
+        - &py3812 !cat [python@3.8.12, *pybase]
+        # R
+        - &r412 !cat
+          - r@4.1.2
+          - !spec {depends: *py399}
+    # mpi: openmpi 3
+    - - &ompi3 !cat
+        - &ompi3-base !cat
+          - openmpi@3.1.6
+          # see modification to spack source with a path change to solve the perpetual problem
+          #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
+          - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+            ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
+            +wrapper-rpath fabrics=verbs schedulers=slurm
+        - !spec {depends: *py399}
+    # packages compiled with openmpi 3 and gcc 10
+    - !loop_depends
+      base: *ompi3
+      specs:
+      - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
+      - hdf5@1.12.1
+    # packages compiled for python 3.9.9
+    - !loop_depends
+      base: *py399
+      specs: &py-mods
+      - py-setuptools
+      - py-wheel
+      # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
+      #   include the base for openmpi and mkl to avoid depending twice
+      - !cat
+        - py-numpy
+        - !spec {depends: *intel-oneapi-mkl-base}
+        - !spec {depends: *ompi3-base}
+      - py-pip
+      - py-cython
+    # packages exclusive to python 3.9.9
+    - !loop_depends
+      base: *py399
+      specs:
+      - snakemake +reports
+    # packages compiled for Python 3.8.12
+    - !loop_depends
+      base: *py3812
+      specs: *py-mods
+    # packages compiled for R 4.1.2
+    - !loop_depends
+      # note that R depends on Python above which manages redundancy
+      base: *r412
+      specs: &r-packages
+        - r-irkernel
+  
