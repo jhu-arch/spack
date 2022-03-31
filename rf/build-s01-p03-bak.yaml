@@ -1,0 +1,170 @@
+# use anchors from another file to avoid repetition
+!exclude _: !include rf/build-s01-p02.yaml
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  config:
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    lmod:
+      core_compilers:
+      - &gcc-back !system_compiler
+      hash_length: 0
+      hierarchy:
+      - compiler
+      - mpi
+      whitelist:
+      - gcc
+      blacklist:
+      - !compiler [*gcc-back]
+      projections:
+        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
+    default:
+      arch_folder: false
+      lmod:
+        core_compilers:
+        - *gcc-back
+        # the hash_length and blacklist_implicits options do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+  compilers:
+  - compiler:
+      spec: !cat
+        - &intel-base intel@19.1.2.254
+        - !compiler [*gcc-back]
+      paths:
+        cc: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/icc
+        cxx: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/icpc
+        f77: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/ifort
+        fc: /cm/shared/apps/Intel/2020/compilers_and_libraries_2020.2.254/linux/bin/intel64/ifort
+      flags: {}
+      operating_system: centos8
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  #! - compiler:
+  #!     spec: !cat 
+  #!       - dpcpp@2021.4.0
+  #!       - !compiler [*gcc-back]
+  #!     paths:
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/dpcpp
+  #!       f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!       fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!     flags: {}
+  #!     operating_system: centos8
+  #!     target: x86_64
+  #!     modules: []
+  #!     environment: {}
+  #!     extra_rpaths: []
+  #! - compiler:
+  #!     spec: !cat
+  #!       - intel@2021.4.0
+  #!       - !compiler [*gcc-back]
+  #!     paths:
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icc
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/icpc
+  #!       f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/ifort
+  #!       fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/intel64/ifort
+  #!     flags: {}
+  #!     operating_system: centos9
+  #!     target: x86_64
+  #!     modules: []
+  #!     environment: {}
+  #!     extra_rpaths: []
+  #! - compiler:
+  #!     spec: !cat
+  #!       - oneapi@2021.4.0
+  #!       - !compiler [*gcc-back]
+  #!     paths:
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icx
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/icpx
+  #!       f77: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!       fc: /cm/shared/apps/Intel/2021/compiler/2021.4.0/linux/bin/ifx
+  #!     flags: {}
+  #!     operating_system: centos8
+  #!     target: x86_64
+  #!     modules: []
+  #!     environment: {}
+  #!     extra_rpaths: []
+  #! - compiler:                                                                                                 
+  #!     spec: oneapi@2022.0.0                                                                                   
+  #!     paths:                                                                                                  
+  #!       cc: /cm/shared/apps/Intel/2021/compiler/2022.0.2/linux/bin/icx                                        
+  #!       cxx: /cm/shared/apps/Intel/2021/compiler/2022.0.2/linux/bin/icpx                                      
+  #!       f77: null                                                                                             
+  #!       fc: null                                                                                              
+  #!     flags: {}                                                                                               
+  #!     operating_system: centos8                                                                               
+  #!     target: x86_64                                                                                          
+  #!     modules: []                                                                                             
+  #!     environment: {}                                                                                         
+  #!     extra_rpaths: [] 
+  # EXTERNAL packages
+  packages:
+    #! intel:
+    #!   buildable: false
+    #!   externals:
+    #!   - prefix: /cm/shared/apps/Intel/2020/
+    #!     spec: !cat [intel@19.1.2.254, !compiler [*gcc-back]]
+    #!   - prefix: /cm/shared/apps/Intel/2021/
+    #!     spec: !cat [intel@2021.4.0, !compiler [*gcc-back]]
+    intel-oneapi-compilers:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2021/
+        spec: !cat 
+        - intel-oneapi-compilers@2021.4.0
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: !cat 
+        - *intel-base 
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
+  # beware that we use lists of lists
+  specs: !flatten
+  - - - *gcc10
+  - *gcc-all
+  - &intel-all
+    # merge the previous step
+    # compiler: intel
+    - - &intel !cat
+        - *intel-base
+        - arch=linux-centos8-cascadelake
+        # dev: not sure why must use explicit compiler here instead of backing (*gcc-base) compiler
+        - !spec {compiler: 'gcc@9.3.0'}
+    # packages compiled with intel
+    - !compiled
+      compiler: *intel
+      specs: *gcc-specs
+    # intel Python
+    - !compiled
+      compiler: *intel
+      specs:
+      - &py399i !cat [python@3.9.9, *pybase]
+      - &py3812i !cat [python@3.8.12, *pybase]
+      - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
+    # packages compiled for python 3.9.9
+    - !loop_depends
+      base: *py399i 
+      specs: *py-mods
+    # packages compiled for Python 3.8.12
+    - !loop_depends
+      base: *py3812i
+      specs: *py-mods
+    # packages compiled for R 4.1.2
+    - !loop_depends
+      # note that R depends on Python above which manages redundancy
+      base: *r412i
+      specs: *r-packages
