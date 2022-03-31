@@ -1,6 +1,4 @@
 # use anchors from another file to avoid repetition
-# PART A: compile the compiler
-!exclude _: !include rf/build-s01-p03.yaml
 spack:
   # CUSTOM MODULES
   # these modifications blacklist the system compiler to make Core packages
@@ -14,9 +12,14 @@ spack:
     lmod:
       core_compilers:
       - &gcc-back !system_compiler
-      - gcc@9.3.0
       core_specs:
-      - &ips !spec {name: intel-parallel-studio@cluster.2020.4, compiler: gcc@9.3.0}
+      - &ips !spec 
+        name: !cat
+        - intel-parallel-studio@cluster.2020.4
+        - |
+          ~advisor ~clck +daal ~gdb ~ilp64 ~inspector +ipp ~itac +mkl +mpi ~newdtags
+          +rpath +shared +tbb ~vtune auto_dispatch=none threads=none
+        compiler: *gcc-back
       hash_length: 0
       hierarchy:
       - compiler
@@ -32,15 +35,9 @@ spack:
       lmod:
         core_compilers:
         - *gcc-back
-        - gcc@9.3.0
         # the hash_length and blacklist_implicits options do not work above in the lmod
         #   section. instead they *must* be placed here in the default section
         hash_length: 0
         blacklist_implicits: true
   specs:
-  # abandon intel-parallel-studio due to several issues:
-  #   we find that spack cannot detect fortran after we compile it
-  #   and spack detects this is as either intel-oneapi or dpcpp
-  #   - - !spec {name: intel-parallel-studio@cluster.2020.4, compiler: *gcc-back}
-  # - - !spec {name: intel-oneapi-compilers@2022.0.1, compiler: *gcc-back}
   - - *ips
