@@ -5,7 +5,7 @@ spack:
   config:
     module_roots: 
       lmod: ./lmod
-  modules:
+  modules: &modules
     enable:
     - lmod
     # see note below. we use the default section instead of an lmod section since many different 
@@ -40,8 +40,8 @@ spack:
         projections:
           # if we do not specify the projection, the hierarchical lmod feature will add hashes
           # module naming convention is upstream of "osp modules" so beware
-          ^mpi^python: 'py-{^python.version}/{name}/{version}'
-          ^python: 'py-{^python.version}/{name}/{version}'
+          # deprecated: ^mpi^python: 'py-{^python.version}/{name}/{version}'
+          ^python: 'py-{^python.version}-{compiler.name}-{compiler.version}/{name}/{version}'
           ^r: 'r-{^r.version}/{name}/{version}'
           all: '{name}/{version}'
   # EXTERNAL packages
