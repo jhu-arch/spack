@@ -69,6 +69,7 @@ spack:
       specs: !flatten
       - &gcc-specs
         - git
+        - cuda@11.1.0 +dev
       # pythons
       - - &py399 !cat 
           - python@3.9.9 
@@ -118,7 +119,7 @@ spack:
     - !loop_depends
       base: *blas0319
       specs:
-      - gsl 
+      - gsl@2.7 
     # packages exclusive to python 3.9.9
     - !loop_depends
       base: *py399
