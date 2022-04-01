@@ -69,7 +69,6 @@ spack:
       specs: !flatten
       - &gcc-specs
         - git
-        - gsl ^blas
       # pythons
       - - &py399 !cat 
           - python@3.9.9 
@@ -80,6 +79,10 @@ spack:
         - &r412 !cat
           - r@4.1.2
           - !spec {depends: *py399}
+      # openblas
+      - - &blas0319 !cat
+          - openblas@0.3.19
+          - &blas-variants ~bignuma ~consistent_fpcsr +ilp64 +locking +pic +shared   
     # mpi: openmpi 3
     - - &ompi3 !cat
         - &ompi3-base !cat
@@ -96,7 +99,7 @@ spack:
       specs:
       - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
       - hdf5@1.12.1
-      - fftw@3.3.10 +mpi+openmp+pfft_patches
+      - fftw@3.3.10 +mpi +openmp +pfft_patches
     # packages compiled for python 3.9.9
     - !loop_depends
       base: *py399
@@ -111,6 +114,11 @@ spack:
         - !spec {depends: *ompi3-base}
       - py-pip
       - py-cython
+    # packages depends on openblas
+    - !loop_depends
+      base: *blas0319
+      specs:
+      - gsl 
     # packages exclusive to python 3.9.9
     - !loop_depends
       base: *py399
