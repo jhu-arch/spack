@@ -69,6 +69,7 @@ spack:
       specs: !flatten
       - &gcc-specs
         - git
+        - gsl ^blas
       # pythons
       - - &py399 !cat 
           - python@3.9.9 
@@ -95,6 +96,7 @@ spack:
       specs:
       - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
       - hdf5@1.12.1
+      - fftw@3.3.10 +mpi+openmp+pfft_patches
     # packages compiled for python 3.9.9
     - !loop_depends
       base: *py399
