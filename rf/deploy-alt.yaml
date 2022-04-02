@@ -1,0 +1,6 @@
+spack:
+  config:
+    install_tree:
+      root: /data/apps/v2/a
+    module_roots: 
+      lmod: /data/apps/v2/a/lmod
