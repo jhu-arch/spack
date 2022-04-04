@@ -69,6 +69,7 @@ spack:
       specs: !flatten
       - &gcc-specs
         - git
+        - cuda@11.1.0 +dev
       # pythons
       - - &py399 !cat 
           - python@3.9.9 
@@ -96,6 +97,13 @@ spack:
     - - &intel-oneapi-mkl !cat
         - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
         - !spec {depends: *ompi3}
+    # openmpi-dependent packages
+    - !loop_depends
+      base: *ompi3
+      specs:
+      - !cat
+        - hdf5@1.12.1
+        - &hdf5-base +cxx +fortran +mpi +shared +hl +szip +tools
     # packages compiled for python 3.9.9
     - !loop_depends
       base: *py399
