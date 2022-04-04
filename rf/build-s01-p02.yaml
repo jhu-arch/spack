@@ -104,6 +104,9 @@ spack:
       - !cat
         - hdf5@1.12.1
         - &hdf5-base +cxx +fortran +mpi +shared +hl +szip +tools
+      - !cat 
+        - fftw@3.3.10
+        - &fftw-base +mpi +openmp ~pfft_patches precision=double,float
     # packages compiled for python 3.9.9
     - !loop_depends
       base: *py399
