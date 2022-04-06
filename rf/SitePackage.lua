@@ -22,6 +22,7 @@ local mapT =
       ['/lmod/z/gcc%-10.3.0/openmpi/3.1.6$'] = "gcc (10.3) + openmpi (3.1)",
       ['/oneapi/2021.1$'] = "oneapi/2021.1",
       ['/lmod/toolchain$'] = "toolchain",
+      ['/lmod/ext$'] = "extras",
    },
 }
 

@@ -70,6 +70,7 @@ spack:
       - &gcc-specs
         - git
         - cuda@11.1.0 +dev
+        - cmake@3.22.1 
       # pythons
       - - &py399 !cat 
           - python@3.9.9 
