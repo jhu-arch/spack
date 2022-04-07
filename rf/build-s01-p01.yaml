@@ -10,7 +10,7 @@ spack:
     - lmod
     lmod:
       core_compilers:
-      - &gcc_back !osp_system_compiler
+      - &gcc_back !system_compiler
       hash_length: 0
       hierarchy:
       - compiler
@@ -47,4 +47,4 @@ spack:
   - - !cat
       - gcc@10.3.0 # 26min
       - arch=linux-centos8-skylake_avx512
-      - !compiler [*gcc_back]
+      - !spec {compiler: *gcc_back}
