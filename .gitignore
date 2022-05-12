@@ -513,3 +513,6 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# overspack additions
+user-cache-*
