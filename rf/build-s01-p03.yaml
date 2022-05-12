@@ -24,10 +24,12 @@ spack:
   - - - *gcc10
   - *gcc-all
   # define the oneapi compiler so it appears as a module
-  - - !compiled
+  - - - &intel oneapi@2021.1
+  # group all Intel-compiled applications below
+  - &intel-all
+    - !compiled
       compiler: &intel oneapi@2021.1
       specs: *gcc-specs
-  - &intel-all
     # intel Python
     - !compiled
       compiler: *intel
