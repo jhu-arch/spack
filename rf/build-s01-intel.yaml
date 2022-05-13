@@ -15,6 +15,7 @@ spack:
       core_specs:
       - &ips !spec 
         name: !cat
+        # we mark the base of the spec for use in build-s01-p03.yaml
         - intel-parallel-studio@cluster.2020.4
         - |
           ~advisor ~clck +daal ~gdb ~ilp64 ~inspector +ipp ~itac +mkl +mpi ~newdtags
@@ -27,7 +28,7 @@ spack:
       whitelist:
       - gcc
       blacklist:
-      - !compiler [*gcc-back]
+      - *gcc-back
       projections:
         all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
