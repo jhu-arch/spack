@@ -26,6 +26,7 @@ spack:
   # define the oneapi compiler and use compiler_alias to set the modulepath
   - - - &intel !compiler_alias
           spec: *ips
+          spec_base: *ips-base
           compiler: oneapi@2021.1
   # group all Intel-compiled applications below
   - &intel-all
