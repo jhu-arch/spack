@@ -18,7 +18,7 @@ spack:
       whitelist:
       - gcc
       blacklist:
-      - !compiler [*gcc_back]
+      - *gcc_back
       projections:
         all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
