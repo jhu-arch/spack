@@ -34,8 +34,8 @@ spack:
       compiler: &intel oneapi@2021.1
       specs: *gcc-specs
     # intel Python
-    - &py399i !cat [!cat [python@3.9.9, *pybase], !spec {compiler: *intel}]
-    - &py3812i !cat [!cat [python@3.8.12, *pybase], !spec {compiler: *intel}]
+    - - &py399i !cat [!cat [python@3.9.9, *pybase], !spec {compiler: *intel}]
+    - - &py3812i !cat [!cat [python@3.8.12, *pybase], !spec {compiler: *intel}]
       #! error with r%oneapi "arithmetic.c:68:16: error: incomplete definition of type 'struct exception'"
       #! - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
     # packages compiled for python 3.9.9
