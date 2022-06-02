@@ -43,11 +43,11 @@ spack:
       #! - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
     # packages compiled for python 3.9.9
     - !loop_depends
-      base: *py399i 
+      base: !cat [*py399i, *intel]
       specs: *py-mods
     # packages compiled for Python 3.8.12
     - !loop_depends
-      base: *py3812i
+      base: !cat [*py3812i, *intel]
       specs: *py-mods
       #! see above
       #! # packages compiled for R 4.1.2
