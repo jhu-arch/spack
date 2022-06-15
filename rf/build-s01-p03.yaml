@@ -29,26 +29,47 @@ spack:
           spec_base: *ips-base
           compiler: oneapi@2021.1
   # group all Intel-compiled applications below
-  - &intel-all
+  - &intel-compiled
+    # compiled (non-MPI) applications built on Intel
     - !compiled
       compiler: &intel oneapi@2021.1
       specs: *gcc-specs
     # intel Python
     - - &py399i !cat [!cat [python@3.9.9, *pybase], !spec {compiler: *intel}]
-    - - &py3812i !cat [!cat [python@3.8.12, *pybase], !spec {compiler: *intel}]
-      #! error with r%oneapi "arithmetic.c:68:16: error: incomplete definition of type 'struct exception'"
-      #! - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
     # packages compiled for python 3.9.9
     - !loop_depends
       base: *py399i
-      specs: *py-mods
-    # packages compiled for Python 3.8.12
+      specs: *py-mods-compiled
+    # define the Intel MPI
+    # we cannot detect intel MPI from inside the intel-parallel-studio even though it exists
+    #   so we make our own intel MPI here
+    - - !cat
+        - &intel-mpi intel-oneapi-mpi@2021.5.1
+        - !spec {compiler: *intel}
+  # group all Intel and Intel MPI applications below
+  - &intel-mpi-deps
+    # packages compiled for python 3.9.9 with intel MPI
     - !loop_depends
-      base: *py3812i
-      specs: *py-mods
-      #! see above
-      #! # packages compiled for R 4.1.2
-      #! - !loop_depends
-      #!   # note that R depends on Python above which manages redundancy
-      #!   base: *r412i
-      #!   specs: *r-packages
+      base: *py399i
+      specs: 
+      - !cat
+        - py-numpy
+        - !spec {depends: *intel-oneapi-mkl-base}
+        - !spec {depends: *intel-mpi}
+#! FAILING below because we cannot get spack to use intel-parallel-studio as Intel MPI
+#!    - - &py3812i !cat [!cat [python@3.8.12, *pybase], !spec {compiler: *intel}]
+#!      #! error with r%oneapi "arithmetic.c:68:16: error: incomplete definition of type 'struct exception'"
+#!      #! - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
+#!    - !loop_depends
+#!      base: *py399i
+#!      specs: *py-mods
+#!    # packages compiled for Python 3.8.12
+#!    - !loop_depends
+#!      base: *py3812i
+#!      specs: *py-mods
+#!      #! see above
+#!      #! # packages compiled for R 4.1.2
+#!      #! - !loop_depends
+#!      #!   # note that R depends on Python above which manages redundancy
+#!      #!   base: *r412i
+#!      #!   specs: *r-packages

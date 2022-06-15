@@ -16,10 +16,11 @@ spack:
       - &ips !spec 
         name: !cat
         # we mark the base of the spec for use in build-s01-p03.yaml
-        - &ips-base intel-parallel-studio@cluster.2020.4
-        - |
-          ~advisor ~clck +daal ~gdb ~ilp64 ~inspector +ipp ~itac +mkl +mpi ~newdtags
-          +rpath +shared +tbb ~vtune auto_dispatch=none threads=none
+        - !cat &ips-base
+          - &ips-base-min intel-parallel-studio@cluster.2020.4
+          - |
+            ~advisor ~clck +daal ~gdb ~ilp64 ~inspector +ipp ~itac +mkl +mpi ~newdtags
+            +rpath +shared +tbb ~vtune auto_dispatch=none threads=none
         compiler: *gcc-back
       hash_length: 0
       hierarchy:
