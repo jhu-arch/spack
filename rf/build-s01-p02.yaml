@@ -85,6 +85,15 @@ spack:
       - - &blas0319 !cat
           - openblas@0.3.19
           - &blas-variants ~bignuma ~consistent_fpcsr +ilp64 +locking +pic +shared   
+      # OTHERS
+      #! failing below for various reasons
+      #! - - !cat
+      #!     - julia@1.7.2
+      #!     - !spec {depends: *py399}  
+      #!     - !spec {depends: 'llvm@12.0.1 targets=bpf,webassembly'}  
+      #!     # removed amdgpu from the targets list manually because the above didn't take
+      #!     # julia rolls its own openblas because we cannot match it due to some suffix problem
+      #!     # note we inadvertently compiled llvm: ^llvm@12.0.1%gcc@10.3.0+clang~code_signing+compiler-rt~cuda~flang+gold~internal_unwind~ipo+libcxx+link_llvm_dylib+lld+lldb+llvm_dylib~mlir+omp_as_runtime~omp_debug~omp_tsan+polly~python~shared_libs~split_dwarf~z3 build_type=Release patches=10cb42f,88ae104 targets=amdgpu,bpf,nvptx,webassembly version_suffix=jl arch=linux-centos8-cascadelake
     # mpi: openmpi 3
     - - &ompi3 !cat
         - &ompi3-base !cat
@@ -111,17 +120,21 @@ spack:
     # packages compiled for python 3.9.9
     - !loop_depends
       base: *py399
-      specs: &py-mods
+      specs: &py-mods-compiled
       - py-setuptools
       - py-wheel
+      - py-pip
+      - py-cython
+    - !loop_depends
+      base: *py399
+      specs: &py-mods-ompi
       # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
       #   include the base for openmpi and mkl to avoid depending twice
+      # note that we use a separate 
       - !cat
         - py-numpy
         - !spec {depends: *intel-oneapi-mkl-base}
         - !spec {depends: *ompi3-base}
-      - py-pip
-      - py-cython
     # packages depends on openblas
     - !loop_depends
       base: *blas0319
@@ -135,7 +148,10 @@ spack:
     # packages compiled for Python 3.8.12
     - !loop_depends
       base: *py3812
-      specs: *py-mods
+      specs: *py-mods-compiled
+    - !loop_depends
+      base: *py3812
+      specs: *py-mods-ompi
     # packages compiled for R 4.1.2
     - !loop_depends
       # note that R depends on Python above which manages redundancy
