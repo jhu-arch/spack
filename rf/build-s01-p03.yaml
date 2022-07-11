@@ -50,26 +50,11 @@ spack:
   - &intel-mpi-deps
     # packages compiled for python 3.9.9 with intel MPI
     - !loop_depends
-      base: *py399i
+      base: !cat
+        - *py399i
+        - !spec {depends: *intel-mpi}
       specs: 
       - !cat
         - py-numpy
         - !spec {depends: *intel-oneapi-mkl-base}
-        - !spec {depends: *intel-mpi}
-#! FAILING below because we cannot get spack to use intel-parallel-studio as Intel MPI
-#!    - - &py3812i !cat [!cat [python@3.8.12, *pybase], !spec {compiler: *intel}]
-#!      #! error with r%oneapi "arithmetic.c:68:16: error: incomplete definition of type 'struct exception'"
-#!      #! - &r412i !cat [r@4.1.2, !spec {depends: *py399i}]
-#!    - !loop_depends
-#!      base: *py399i
-#!      specs: *py-mods
-#!    # packages compiled for Python 3.8.12
-#!    - !loop_depends
-#!      base: *py3812i
-#!      specs: *py-mods
-#!      #! see above
-#!      #! # packages compiled for R 4.1.2
-#!      #! - !loop_depends
-#!      #!   # note that R depends on Python above which manages redundancy
-#!      #!   base: *r412i
-#!      #!   specs: *r-packages
+      - py-scipy
