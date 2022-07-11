@@ -1,0 +1,65 @@
+# use anchors from another file to avoid repetition
+!exclude _:
+  - !include rf/build-rbradley-s01-p04.yaml
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  config:
+    module_roots: 
+      lmod: ./lmod
+  modules:
+    enable:
+    - lmod
+    lmod:
+      core_compilers:
+      - &gcc-back !system_compiler
+      hash_length: 0
+      hierarchy:
+      - compiler
+      - mpi
+      whitelist:
+      - gcc
+      blacklist:
+      - !compiler [*gcc-back]
+      projections:
+        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
+    default:
+      arch_folder: false
+      lmod:
+        core_compilers:
+        - *gcc-back
+        # the hash_length and blacklist_implicits options do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+  compilers:
+  - compiler:
+      spec: oneapi@2022.0.0
+      paths:
+        cc: /data/spack/v2/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.0.1-m4hmcaojzy3pw47saky5tyazfew6h7gl/compiler/2022.0.1/linux/bin/icx
+        cxx: /data/spack/v2/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.0.1-m4hmcaojzy3pw47saky5tyazfew6h7gl/compiler/2022.0.1/linux/bin/icpx
+        f77: /data/spack/v2/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.0.1-m4hmcaojzy3pw47saky5tyazfew6h7gl/compiler/2022.0.1/linux/bin/ifx
+        fc: /data/spack/v2/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.0.1-m4hmcaojzy3pw47saky5tyazfew6h7gl/compiler/2022.0.1/linux/bin/ifx
+      flags: {}
+      operating_system: centos8
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  - compiler:
+      spec: &intel oneapi@2021.1
+      paths:
+        cc: /data/spack/v2/marianatrenchbuildsite/linux-centos8-cascadelake/gcc-9.3.0/intel-parallel-studio-cluster.2020.4-zfe4msmkwmimivphjmsv3le4xtfvgfiq/compilers_and_libraries_2020.4.304/linux/bin/icx
+        cxx: /data/spack/v2/marianatrenchbuildsite/linux-centos8-cascadelake/gcc-9.3.0/intel-parallel-studio-cluster.2020.4-zfe4msmkwmimivphjmsv3le4xtfvgfiq/compilers_and_libraries_2020.4.304/linux/bin/icpx
+        f77: /data/spack/v2/marianatrenchbuildsite/linux-centos8-cascadelake/gcc-9.3.0/intel-parallel-studio-cluster.2020.4-zfe4msmkwmimivphjmsv3le4xtfvgfiq/compilers_and_libraries_2020.4.304/linux/bin/intel64/ifort
+        fc: /data/spack/v2/marianatrenchbuildsite/linux-centos8-cascadelake/gcc-9.3.0/intel-parallel-studio-cluster.2020.4-zfe4msmkwmimivphjmsv3le4xtfvgfiq/compilers_and_libraries_2020.4.304/linux/bin/intel64/ifort
+      flags: {}
+      operating_system: centos8
+      target: x86_64
+      modules: []
+      environment: {}
+      extra_rpaths: []
+  specs:
+  - - *ips
+    - !spec {name: git, compiler: *intel} 
