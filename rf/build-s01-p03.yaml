@@ -6,9 +6,6 @@ spack:
   # these modifications blacklist the system compiler to make Core packages
   # this streamlines the lmod tree that we expose to the users
   view: false
-  config:
-    module_roots: 
-      lmod: ./lmod
   modules: *modules
   # EXTERNAL packages
   # note that we are using compilers built by spack above and for now neglecting to mark them external
@@ -20,19 +17,21 @@ spack:
         spec: slurm@19.05.7
   # beware that we use lists of lists
   specs: !flatten
-  - - - *ips
+  #! - - - *ips
   - - - *gcc10
   - *gcc-all
   # define the oneapi compiler and use compiler_alias to set the modulepath
   - - - &intel !compiler_alias
           spec: *ips
           spec_base: *ips-base
-          compiler: oneapi@2021.1
+          # in build-s01-intel.yaml we build intel with intel-oneapi-compilers and 
+          #   then here we define the compiler as it appears on "spack compilers"
+          compiler: &intel oneapi@2022.1.0
   # group all Intel-compiled applications below
   - &intel-compiled
     # compiled (non-MPI) applications built on Intel
     - !compiled
-      compiler: &intel oneapi@2021.1
+      compiler: *intel
       specs: *gcc-specs
     # intel Python
     - - &py399i !cat [!cat [python@3.9.9, *pybase], !spec {compiler: *intel}]
@@ -44,7 +43,7 @@ spack:
     # we cannot detect intel MPI from inside the intel-parallel-studio even though it exists
     #   so we make our own intel MPI here
     - - !cat
-        - &intel-mpi intel-oneapi-mpi@2021.5.1
+        - &intel-mpi intel-oneapi-mpi@2021.6.0
         - !spec {compiler: *intel}
   # group all Intel and Intel MPI applications below
   - &intel-mpi-deps
