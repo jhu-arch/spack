@@ -2,28 +2,24 @@ spack:
   # CUSTOM MODULES
   # these modifications blacklist the system compiler to make Core packages
   # this streamlines the lmod tree that we expose to the users
-  config:
-    module_roots: 
-      lmod: ./lmod
   modules:
-    enable:
-    - lmod
-    lmod:
-      core_compilers:
-      - &gcc_back !osp_system_compiler
-      hash_length: 0
-      hierarchy:
-      - compiler
-      - mpi
-      whitelist:
-      - gcc
-      blacklist:
-      - !compiler [*gcc_back]
-      projections:
-        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
+      roots:
+        lmod: ./lmod
       arch_folder: false
       lmod:
+        core_compilers:
+        - &gcc_back !osp_system_compiler
+        hash_length: 0
+        hierarchy:
+        - compiler
+        - mpi
+        whitelist:
+        - gcc
+        blacklist:
+        - !compiler [*gcc_back]
+        projections:
+          all: '{compiler.name}/{compiler.version}/{name}/{version}'
         core_compilers:
         - *gcc_back
         # the hash_length and blacklist_implicits options do not work above in the lmod
