@@ -1,40 +1,32 @@
-# use anchors from another file to avoid repetition
 spack:
-  # CUSTOM MODULES
-  # these modifications blacklist the system compiler to make Core packages
-  # this streamlines the lmod tree that we expose to the users
-  config:
-    module_roots: 
-      lmod: ./lmod
   modules:
-    enable:
-    - lmod
-    lmod:
-      core_compilers:
-      - &gcc-back !system_compiler
-      core_specs:
-      - &ips !spec 
-        name: !cat
-        # we mark the base of the spec for use in build-s01-p03.yaml
-        - !cat &ips-base
-          - &ips-base-min intel-parallel-studio@cluster.2020.4
-          - |
-            ~advisor ~clck +daal ~gdb ~ilp64 ~inspector +ipp ~itac +mkl +mpi ~newdtags
-            +rpath +shared +tbb ~vtune auto_dispatch=none threads=none
-        compiler: *gcc-back
-      hash_length: 0
-      hierarchy:
-      - compiler
-      - mpi
-      whitelist:
-      - gcc
-      blacklist:
-      - *gcc-back
-      projections:
-        all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
     default:
+      roots:
+        lmod: ./lmod
       arch_folder: false
       lmod:
+        core_compilers:
+        - &gcc-back !system_compiler
+        core_specs:
+        - &ips !spec 
+          name: !cat
+          # we mark the base of the spec for use in build-s01-p03.yaml
+          # note that we retire intel-parallel-studio@cluster.2020.4 per guidance from intel
+          - !cat &ips-base
+            - &ips-base-min intel-oneapi-compilers@2022.1.0.
+            # there are no parameters for intel-oneapi-compilers
+            - |
+          compiler: *gcc-back
+        hash_length: 0
+        hierarchy:
+        - compiler
+        - mpi
+        whitelist:
+        - gcc
+        blacklist:
+        - *gcc-back
+        projections:
+          all: '{architecture}/{compiler.name}/{compiler.version}/{name}/{version}'
         core_compilers:
         - *gcc-back
         # the hash_length and blacklist_implicits options do not work above in the lmod

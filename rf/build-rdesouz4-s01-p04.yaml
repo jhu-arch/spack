@@ -2,15 +2,12 @@ spack:
   # CUSTOM MODULES
   # these modifications blacklist the system compiler to make Core packages
   # this streamlines the lmod tree that we expose to the users
-  config:
-    module_roots: 
-      lmod: ./lmod
   modules:
-    enable:
-    - lmod
     # see note below. we use the default section instead of an lmod section since many different 
     #   modifications do not appear to work otherwise
     default:
+      roots:
+        lmod: ./lmod
       arch_folder: false
       lmod:
         hierarchy:

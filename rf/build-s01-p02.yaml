@@ -2,15 +2,12 @@ spack:
   # CUSTOM MODULES
   # these modifications blacklist the system compiler to make Core packages
   # this streamlines the lmod tree that we expose to the users
-  config:
-    module_roots: 
-      lmod: ./lmod
   modules: &modules
-    enable:
-    - lmod
     # see note below. we use the default section instead of an lmod section since many different 
     #   modifications do not appear to work otherwise
     default:
+      roots:
+        lmod: ./lmod
       arch_folder: false
       lmod:
         hierarchy:
@@ -100,10 +97,11 @@ spack:
           - openmpi@3.1.6
           # see modification to spack source with a path change to solve the perpetual problem
           #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
-          - &ompi-variants ~atomics ~cuda ~cxx +cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
-            ~lustre~memchecker +pmi ~pmix +romio ~singularity ~sqlite3 +static ~thread_multiple +vt 
-            +wrapper-rpath fabrics=verbs schedulers=slurm
+          - &ompi-variants +atomics ~cuda ~cxx ~cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+            ~lustre ~memchecker +pmi +romio +rsh ~singularity 
+            fabrics=verbs schedulers=slurm
         - !spec {depends: *py399}
+        - !spec {compiler: *gcc10}
     - - &intel-oneapi-mkl !cat
         - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
         - !spec {depends: *ompi3}
@@ -134,7 +132,7 @@ spack:
       - !cat
         - py-numpy
         - !spec {depends: *intel-oneapi-mkl-base}
-        - !spec {depends: *ompi3-base}
+        - !spec {depends: *ompi3-base, compiler: *gcc10}
     # packages depends on openblas
     - !loop_depends
       base: *blas0319
@@ -153,9 +151,10 @@ spack:
       base: *py3812
       specs: *py-mods-ompi
     # packages compiled for R 4.1.2
-    - !loop_depends
-      # note that R depends on Python above which manages redundancy
-      base: *r412
-      specs: &r-packages
-        - r-irkernel
+    #! r-irkernel is failing due to issues with llvm which supports it
+    #! - !loop_depends
+    #!   # note that R depends on Python above which manages redundancy
+    #!   base: *r412
+    #!   specs: &r-packages
+    #!     - r-irkernel
   
