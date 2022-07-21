@@ -53,7 +53,10 @@ spack:
         - *py399i
         - !spec {depends: *intel-mpi}
       specs: 
-      - !cat
+      - &numpy-intel !cat
         - py-numpy
         - !spec {depends: *intel-oneapi-mkl-base}
-      - py-scipy
+      - !cat
+        - py-scipy 
+        - !spec {depends: *numpy-intel}
+ 
