@@ -141,15 +141,15 @@ spack:
     # packages exclusive to python 3.9.9
     - !loop_depends
       # we have to be more explicit with the compiler or spack defaults to gcc-back
-      base: !cat [*py399, !spec {compiler:*gcc10}]
+      base: !cat [*py399, !spec {compiler: *gcc10}]
       specs:
       - snakemake +reports
     # packages compiled for Python 3.8.12
     - !loop_depends
-      base: !cat [*py3812, !spec {compiler:*gcc10}]
+      base: !cat [*py3812, !spec {compiler: *gcc10}]
       specs: *py-mods-compiled
     - !loop_depends
-      base: !cat [*py3812, !spec {compiler:*gcc10}]
+      base: !cat [*py3812, !spec {compiler: *gcc10}]
       specs: *py-mods-ompi
     # packages compiled for R 4.1.2
     #! r-irkernel is failing due to issues with llvm which supports it
