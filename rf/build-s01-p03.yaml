@@ -43,7 +43,10 @@ spack:
     # we cannot detect intel MPI from inside the intel-parallel-studio even though it exists
     #   so we make our own intel MPI here
     - - !cat
-        - &intel-mpi intel-oneapi-mpi@2021.6.0
+        - &intel-mpi !cat
+          - intel-oneapi-mpi@2021.6.0 
+          - +external-libfabric ~generic-names ~ilp64
+          - !spec {depends: 'libfabric@1.14.1 ~debug~kdreg fabrics=sockets,tcp,udp,verbs'}
         - !spec {compiler: *intel}
   # group all Intel and Intel MPI applications below
   - &intel-mpi-deps
@@ -53,10 +56,23 @@ spack:
         - *py399i
         - !spec {depends: *intel-mpi}
       specs: 
+      - &intel-oneapi-mkl-intel !cat
+        - *intel-oneapi-mkl-base
+        - !spec {compiler: *intel}
       - &numpy-intel !cat
-        - py-numpy
-        - !spec {depends: *intel-oneapi-mkl-base}
-      - !cat
-        - py-scipy 
-        - !spec {depends: *numpy-intel}
+        - !cat 
+          - py-numpy@1.23.1 
+          # rbradley is trying to overcome hanging compiles with O3, O2, O1
+          # we are continuing this build even though  it insists on compiling mkl with gcc
+          - cflags="-O0" cxxflags="-O0"
+        # issue: major problems enforcing compilers. without the next line we get gcc on numpy with 
+        #   oneapi compilers everywhere else
+        - !spec {compiler: *intel}
+        # dev: one of our mkl for gcc has two different openmpi for some reason!
+        #! removing this beacause of issues with py-numpy
+        #! - !spec {depends: *intel-oneapi-mkl-intel}
+      #! pending
+      #! - !cat
+      #!   - py-scipy 
+      #!   - !spec {depends: *numpy-intel}
  
