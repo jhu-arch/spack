@@ -13,9 +13,8 @@ spack:
           # we mark the base of the spec for use in build-s01-p03.yaml
           # note that we retire intel-parallel-studio@cluster.2020.4 per guidance from intel
           - !cat &ips-base
-            - &ips-base-min intel-oneapi-compilers@2022.1.0.
+            - &ips-base-min intel-oneapi-compilers@2022.1.0
             # there are no parameters for intel-oneapi-compilers
-            - |
           compiler: *gcc-back
         hash_length: 0
         hierarchy:
