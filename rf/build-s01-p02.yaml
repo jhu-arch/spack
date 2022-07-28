@@ -90,7 +90,9 @@ spack:
       #!     - !spec {depends: 'llvm@12.0.1 targets=bpf,webassembly'}  
       #!     # removed amdgpu from the targets list manually because the above didn't take
       #!     # julia rolls its own openblas because we cannot match it due to some suffix problem
-      #!     # note we inadvertently compiled llvm: ^llvm@12.0.1%gcc@10.3.0+clang~code_signing+compiler-rt~cuda~flang+gold~internal_unwind~ipo+libcxx+link_llvm_dylib+lld+lldb+llvm_dylib~mlir+omp_as_runtime~omp_debug~omp_tsan+polly~python~shared_libs~split_dwarf~z3 build_type=Release patches=10cb42f,88ae104 targets=amdgpu,bpf,nvptx,webassembly version_suffix=jl arch=linux-centos8-cascadelake
+      #!     # beware that we need an llvm for julia so we might want to make a centralized one,
+      #!     # however there are targets we might want to restrict:
+      #!     #   targets=amdgpu,bpf,nvptx,webassembly
     # mpi: openmpi 3
     - - &ompi3 !cat
         - &ompi3-base !cat
@@ -100,6 +102,7 @@ spack:
           - &ompi-variants +atomics ~cuda ~cxx ~cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
             ~lustre ~memchecker +pmi +romio +rsh ~singularity 
             fabrics=verbs schedulers=slurm
+        # openmpi depends on rdma depends on py-docutils hence we have to set a python version
         - !spec {depends: *py399}
         - !spec {compiler: *gcc10}
     - - &intel-oneapi-mkl !cat
@@ -123,16 +126,6 @@ spack:
       - py-wheel
       - py-pip
       - py-cython
-    - !loop_depends
-      base: *py399
-      specs: &py-mods-ompi
-      # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
-      #   include the base for openmpi and mkl to avoid depending twice
-      # note that we use a separate 
-      - !cat
-        - py-numpy
-        - !spec {depends: *intel-oneapi-mkl-base}
-        - !spec {depends: *ompi3-base, compiler: *gcc10}
     # packages depends on openblas
     - !loop_depends
       base: *blas0319
@@ -148,9 +141,6 @@ spack:
     - !loop_depends
       base: !cat [*py3812, !spec {compiler: *gcc10}]
       specs: *py-mods-compiled
-    - !loop_depends
-      base: !cat [*py3812, !spec {compiler: *gcc10}]
-      specs: *py-mods-ompi
     # packages compiled for R 4.1.2
     #! r-irkernel is failing due to issues with llvm which supports it
     #! - !loop_depends
