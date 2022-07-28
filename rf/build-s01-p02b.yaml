@@ -1,0 +1,75 @@
+!exclude _: !include rf/build-s01-p02.yaml
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  modules: &modules
+    # see note below. we use the default section instead of an lmod section since many different 
+    #   modifications do not appear to work otherwise
+    default:
+      roots:
+        lmod: ./lmod
+      arch_folder: false
+      lmod:
+        hierarchy:
+          - compiler
+          # - mpi
+          # it would be nice to use python here but only virtual packages are allowed
+        core_compilers:
+        - &gcc-back !system_compiler
+        # see: https://spack.readthedocs.io/en/latest/module_file_support.html\
+        #   #blacklist-or-whitelist-specific-module-files
+        whitelist:
+        - gcc
+        blacklist:
+        - *gcc-back
+        #! core_compilers:
+        #! - *gcc-back
+        # we set python and R dependents as core_specs because you can move it later with "osp modules"
+        #! dev: default openmpi is not working very well
+        core_specs:
+        - '^mpi^python' 
+        - '^python'
+        - '^r'
+        # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+        projections:
+          # if we do not specify the projection, the hierarchical lmod feature will add hashes
+          # module naming convention is upstream of "osp modules" so beware
+          # deprecated: ^mpi^python: 'py-{^python.version}/{name}/{version}'
+          ^python: 'py-{^python.version}-{compiler.name}-{compiler.version}/{name}/{version}'
+          ^r: 'r-{^r.version}/{name}/{version}'
+          all: '{name}/{version}'
+  # EXTERNAL packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: !spec {name: intel@19.1.2.254, compiler: *gcc-back}
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
+  specs: !flatten
+  # build-s01-p02b.yaml adds openmpi-dependent packages with recursion issues which would otherwise 
+  #   lead to a "cannot depend on X twice" error because e.g. py-numpy depends on MKL then openmpi
+  #   which itself depends on rdma then py-docutils and another python. to manage redundancy we use
+  #   this "part B" spec afterwards because we must look up the hash
+  - - !loop_depends
+      base: *py399
+      specs: &py-mods-ompi
+      # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
+      #   include the base for openmpi and mkl to avoid depending twice
+      # note that we use a separate 
+      # ...!!!
+      - !cat
+        - py-numpy
+        - !spec {depends: *intel-oneapi-mkl-base}
+        - !hash [*ompi3-base]
+    - !loop_depends
+      base: !cat [*py3812, !spec {compiler: *gcc10}]
+      specs: *py-mods-ompi
