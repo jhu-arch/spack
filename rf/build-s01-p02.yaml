@@ -106,8 +106,11 @@ spack:
         - !spec {depends: *py399}
         - !spec {compiler: *gcc10}
     - - &intel-oneapi-mkl !cat
-        - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
-        - !spec {depends: *ompi3}
+        # continue without the cluster option because it causes a "cannot depend twice" error when you
+        #   compile py-numpy against this mkl, due to openmpi depending on rdma-core. see comment below
+        #   about py-numpy and MKL. we will have to wait for cluster features (scalapack, blacs, etc)
+        - &intel-oneapi-mkl-base intel-oneapi-mkl ~cluster ~ilp64 +shared ^intel-oneapi-tbb 
+        # removed due to "cannot depend twice" error: - !spec {depends: *ompi3}
     # openmpi-dependent packages
     - !loop_depends
       base: *ompi3
@@ -126,6 +129,15 @@ spack:
       - py-wheel
       - py-pip
       - py-cython
+      # note that py-numpy should use MKL over openblas for performance on intel systems. when attempting
+      #   to use MKL with +cluster we have major issues getting spack to avoid the "cannot depend twice"
+      #   issue because of the dependency chain py-numpy, intel-oneapi-mkl +cluster, openmpi, rmda-core,
+      #   py-docutils, python. this chain prevents us from having one openmpi that serves multiple python
+      #   and py-numpy installations. so we discard ~cluster and with it build-s01-p02b.yaml for now until
+      #   spack fixes this issue. see https://github.com/spack/spack/issues/19782
+      - !cat 
+        - py-numpy                                                                                            
+        - !spec {depends: *intel-oneapi-mkl-base}
     # packages depends on openblas
     - !loop_depends
       base: *blas0319
