@@ -1,3 +1,7 @@
+# DO NOT USE THIS FILE. spack has a "cannot depend on X twice" error that makes it hard to reduce complexity
+#   and redundancy while also using py-numpy that depends on intel-oneapi-mkl +cluster so for now
+#   we simply rely on build-s01-p02.yaml. note also that we started using the !hash feature here but this 
+#   could not overcome the depends twice issue. we retain this as an exampl for later
 !exclude _: !include rf/build-s01-p02.yaml
 spack:
   # CUSTOM MODULES
@@ -64,8 +68,10 @@ spack:
       specs: &py-mods-ompi
       # numpy built with mkl depends on openmpi which also depends on python so we have to selectively
       #   include the base for openmpi and mkl to avoid depending twice
-      # note that we use a separate 
-      # ...!!!
+      # this is currently a bug in spack, which gives the "depend twice" error
+      # the use of the !hash operator below was an attempt to use a hash instead to specify an already-
+      #   compiled openmpi, but this expands it to the full spec and then this causes the error again
+      #   hence we are waiting for this to be fixed, see https://github.com/spack/spack/issues/19782 
       - !cat
         - py-numpy
         - !spec {depends: *intel-oneapi-mkl-base}
