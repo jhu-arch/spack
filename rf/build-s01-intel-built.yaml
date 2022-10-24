@@ -15,12 +15,12 @@ spack:
       environment: {}
       extra_rpaths: []
   - compiler:
-      spec: gcc@10.3.0
+      spec: gcc@9.3.0
       paths:
-        cc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/gcc-10.3.0-b43gdpubkpnxjqzy3cz7shluvysnpysd/bin/gcc
-        cxx: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/gcc-10.3.0-b43gdpubkpnxjqzy3cz7shluvysnpysd/bin/g++
-        f77: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/gcc-10.3.0-b43gdpubkpnxjqzy3cz7shluvysnpysd/bin/gfortran
-        fc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/gcc-10.3.0-b43gdpubkpnxjqzy3cz7shluvysnpysd/bin/gfortran
+        cc: /data/apps/linux-centos8-cascadelake/gcc-9.2.0/gcc-9.3.0-bnvby67rgbqevwsd264rgz44xucnkhpm/bin/gcc
+        cxx: /data/apps/linux-centos8-cascadelake/gcc-9.2.0/gcc-9.3.0-bnvby67rgbqevwsd264rgz44xucnkhpm/bin/g++
+        f77: /data/apps/linux-centos8-cascadelake/gcc-9.2.0/gcc-9.3.0-bnvby67rgbqevwsd264rgz44xucnkhpm/bin/gfortran
+        fc: /data/apps/linux-centos8-cascadelake/gcc-9.2.0/gcc-9.3.0-bnvby67rgbqevwsd264rgz44xucnkhpm/bin/gfortran
       flags: {}
       operating_system: centos8
       target: x86_64
@@ -30,10 +30,10 @@ spack:
   - compiler:
       spec: dpcpp@2022.1.0
       paths:
-        cc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/icx
-        cxx: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/dpcpp
-        f77: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
-        fc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
+        cc: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/icx
+        cxx: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/dpcpp
+        f77: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
+        fc: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
       flags: {}
       operating_system: centos8
       target: x86_64
@@ -43,10 +43,10 @@ spack:
   - compiler:
       spec: intel@2021.6.0
       paths:
-        cc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/icc
-        cxx: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/icpc
-        f77: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/ifort
-        fc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/ifort
+        cc: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/icc
+        cxx: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/icpc
+        f77: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/ifort
+        fc: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/intel64/ifort
       flags: {}
       operating_system: centos8
       target: x86_64
@@ -56,10 +56,10 @@ spack:
   - compiler:
       spec: oneapi@2022.1.0
       paths:
-        cc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/icx
-        cxx: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/icpx
-        f77: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
-        fc: /apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
+        cc: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/icx
+        cxx: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/icpx
+        f77: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
+        fc: /data/apps/build/b/marianatrenchbuildsite/linux-centos8-skylake_avx512/gcc-8.3.1/intel-oneapi-compilers-2022.1.0-cnllnfnmham3wcb6vkqf7l6ouqifg3ru/compiler/2022.1.0/linux/bin/ifx
       flags: {}
       operating_system: centos8
       target: x86_64
