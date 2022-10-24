@@ -189,7 +189,27 @@ class PyNumpy(PythonPackage):
                                    '{0}'.format(gcc_version))
             if gcc_version <= Version('5.1'):
                 flags.append(self.compiler.c99_flag)
-
+        # rbradley hacks in flags to deal with hanging compile
+        #   this works in tandem with cflags="-O0" cxxflags="-O0" in the spec
+        #   the issue is that any level of optimization will cause the intel oneapi compiler
+        #   at the latest version to hang when compiling:
+        #     numpy/core/src/umath/loops.c
+        #   we see the following warnings when we play around with different compiler flags:
+        #     numpy/core/src/umath/loops.c.src:2355:51: warning: comparison with NaN 
+        #       always evaluates to false in fast floating point modes [-Wtautological-constant-compare]
+        #   and as a result, I suspect that we are having a problem with isnan and possibly the 
+        #   compliance of IEEE 754 inside the intel compilers. some github issues threads on unrelated 
+        #   software suggested this, but I could not find definitive proof. in any case, the only
+        #   solution is to add -O0 but there is another problem. if you inject these flags into the 
+        #   compiler wrappers, I suspect that because this is a python build and hence different than
+        #   usual automake and make that the flags end up before compiler options that override it so
+        #   so a later O3 overrides the O1. so I swap the flags and send them to the build system and
+        #   somehow this puts them in the right place. in the future we should figure out why the 
+        #   compile fails with O3. I suspect this is a compiler bug but it is very hard to troubleshoot
+        #   and all I can see is very slow mmap operations in strace when I reproduce the compile
+        #   manually inside the spack-stage directory
+        if self.spec.satisfies('%oneapi'):
+            return (None, flags, None)
         return (flags, None, None)
 
     @run_before('install')
