@@ -1,0 +1,162 @@
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  modules: &modules
+    # see note below. we use the default section instead of an lmod section since many different 
+    #   modifications do not appear to work otherwise
+    default:
+      roots:
+        lmod: ./lmod
+      arch_folder: false
+      lmod:
+        hierarchy:
+          - compiler
+          # - mpi
+          # it would be nice to use python here but only virtual packages are allowed
+        core_compilers:
+        - &gcc-back !system_compiler
+        # see: https://spack.readthedocs.io/en/latest/module_file_support.html\
+        #   #blacklist-or-whitelist-specific-module-files
+        whitelist:
+        - gcc
+        blacklist:
+        - *gcc-back
+        #! core_compilers:
+        #! - *gcc-back
+        # we set python and R dependents as core_specs because you can move it later with "osp modules"
+        #! dev: default openmpi is not working very well
+        core_specs:
+        - '^mpi^python' 
+        - '^python'
+        - '^r'
+        # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+        projections:
+          # if we do not specify the projection, the hierarchical lmod feature will add hashes
+          # module naming convention is upstream of "osp modules" so beware
+          # deprecated: ^mpi^python: 'py-{^python.version}/{name}/{version}'
+          ^python: 'py-{^python.version}-{compiler.name}-{compiler.version}/{name}/{version}'
+          ^r: 'r-{^r.version}/{name}/{version}'
+          all: '{name}/{version}'
+  # EXTERNAL packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2022/
+        spec: !spec {name: intel-oneapi-compilers@2022.1.0, compiler: *gcc-back}
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@20-11-9-1
+  specs: !flatten
+  # compiler: gcc 10
+  - - - &gcc12 !cat
+        - gcc@12.2.0
+        - arch=linux-centos8-skylake_avx512
+        - !spec {compiler: *gcc-back}
+  - &gcc-all
+    # packages compiled with gcc 10
+    - !compiled
+      compiler: *gcc12
+      specs: !flatten
+      - &gcc-specs
+        - git
+        - cuda@11.1.0 +dev
+        - cmake@3.22.1 
+      # pythons
+      - - &py3108 !cat 
+          - python@3.10.8 
+          - &pybase +bz2 +ctypes +dbm ~debug +libxml2 +lzma ~nis +optimizations +pic
+            +pyexpat +pythoncmd +readline +shared +sqlite3 +ssl ~tix ~tkinter ~ucs4 +uuid +zlib
+        # R
+        - &r422 !cat
+          - r@4.2.2
+          - !spec {depends: *py3108}
+      # openblas
+      - - &blas0319 !cat
+          - openblas@0.3.19
+          - &blas-variants ~bignuma ~consistent_fpcsr +ilp64 +locking +pic +shared   
+      # OTHERS
+      #! failing below for various reasons
+      #! - - !cat
+      #!     - julia@1.7.2
+      #!     - !spec {depends: *py3108}  
+      #!     - !spec {depends: 'llvm@12.0.1 targets=bpf,webassembly'}  
+      #!     # removed amdgpu from the targets list manually because the above didn't take
+      #!     # julia rolls its own openblas because we cannot match it due to some suffix problem
+      #!     # beware that we need an llvm for julia so we might want to make a centralized one,
+      #!     # however there are targets we might want to restrict:
+      #!     #   targets=amdgpu,bpf,nvptx,webassembly
+    # mpi: openmpi 4
+    - - &ompi4 !cat
+        - &ompi4-base !cat
+          - openmpi@3.1.6
+          # see modification to spack source with a path change to solve the perpetual problem
+          #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
+          - &ompi-variants +atomics ~cuda ~cxx ~cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+            ~lustre ~memchecker +pmi +romio +rsh ~singularity 
+            fabrics=auto schedulers=slurm
+        # openmpi depends on rdma depends on py-docutils hence we have to set a python version
+        - !spec {depends: *py3108}
+        - !spec {compiler: *gcc12}
+#!    - - &intel-oneapi-mkl !cat
+#!        # continue without the cluster option because it causes a "cannot depend twice" error when you
+#!        #   compile py-numpy against this mkl, due to openmpi depending on rdma-core. see comment below
+#!        #   about py-numpy and MKL. we will have to wait for cluster features (scalapack, blacs, etc)
+#!        - &intel-oneapi-mkl-base intel-oneapi-mkl ~cluster ~ilp64 +shared ^intel-oneapi-tbb 
+#!        # removed due to "cannot depend twice" error: - !spec {depends: *ompi3}
+#!    # openmpi-dependent packages
+#!    - !loop_depends
+#!      base: *ompi3
+#!      specs:
+#!      - !cat
+#!        - hdf5@1.12.1
+#!        - &hdf5-base +cxx +fortran +mpi +shared +hl +szip +tools
+#!      - !cat 
+#!        - fftw@3.3.10
+#!        - &fftw-base +mpi +openmp ~pfft_patches precision=double,float
+#!    # packages compiled for python 3.9.9
+#!    - !loop_depends
+#!      base: *py3108
+#!      specs: &py-mods-compiled
+#!      - py-setuptools
+#!      - py-wheel
+#!      - py-pip
+#!      - py-cython
+#!      # note that py-numpy should use MKL over openblas for performance on intel systems. when attempting
+#!      #   to use MKL with +cluster we have major issues getting spack to avoid the "cannot depend twice"
+#!      #   issue because of the dependency chain py-numpy, intel-oneapi-mkl +cluster, openmpi, rmda-core,
+#!      #   py-docutils, python. this chain prevents us from having one openmpi that serves multiple python
+#!      #   and py-numpy installations. so we discard ~cluster and with it build-s01-p02b.yaml for now until
+#!      #   spack fixes this issue. see https://github.com/spack/spack/issues/19782
+#!      - !cat 
+#!        - py-numpy                                                                                            
+#!        - !spec {depends: *intel-oneapi-mkl-base}
+#!    # packages depends on openblas
+#!    - !loop_depends
+#!      base: *blas0319
+#!      specs:
+#!      - gsl@2.7 
+#!    # packages exclusive to python 3.9.9
+#!    - !loop_depends
+#!      # we have to be more explicit with the compiler or spack defaults to gcc-back
+#!      base: !cat [*py3108, !spec {compiler: *gcc12}]
+#!      specs:
+#!      - snakemake +reports
+#!    # packages compiled for Python 3.8.12
+#!    - !loop_depends
+#!      base: !cat [*py3812, !spec {compiler: *gcc12}]
+#!      specs: *py-mods-compiled
+#!    # packages compiled for R 4.1.2
+#!    #! r-irkernel is failing due to issues with llvm which supports it
+#!    #! - !loop_depends
+#!    #!   # note that R depends on Python above which manages redundancy
+#!    #!   base: *r422
+#!    #!   specs: &r-packages
+#!    #!     - r-irkernel
+#!  

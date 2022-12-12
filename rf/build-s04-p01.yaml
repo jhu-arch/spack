@@ -1,0 +1,46 @@
+spack:
+  # CUSTOM MODULES
+  # these modifications blacklist the system compiler to make Core packages
+  # this streamlines the lmod tree that we expose to the users
+  modules:
+    default:
+      roots:
+        lmod: ./lmod
+      arch_folder: false
+      lmod:
+        core_compilers:
+        - &gcc_back !system_compiler
+        hash_length: 0
+        hierarchy:
+        - compiler
+        - mpi
+        whitelist:
+        - gcc
+        blacklist:
+        - *gcc_back
+        projections:
+          all: '{name}/{version}'
+        core_compilers:
+        - *gcc_back
+        # the hash_length and blacklist_implicits options do not work above in the lmod
+        #   section. instead they *must* be placed here in the default section
+        hash_length: 0
+        blacklist_implicits: true
+  # EXTERNAL packages
+  packages:
+    intel:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/Intel/2020/
+        spec: !cat [intel@19.1.2.254, !cat ['%', *gcc_back]]
+    slurm:
+      buildable: false
+      externals:
+      - prefix: /cm/shared/apps/slurm/current
+        spec: slurm@19.05.7
+  specs:
+  # beware that we use lists of lists
+  - - !cat
+      - gcc@12.2.0 # 26min
+      - arch=linux-centos8-skylake_avx512
+      - !spec {compiler: *gcc_back}
