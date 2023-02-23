@@ -1,0 +1,12 @@
+# USE spack to build external dependencies to resolve cyclical or circular dependencies
+spack:
+  specs:
+  # beware that we use lists of lists
+  # nb that I tried and failed to use external python for this, due to a pip issue related to dataclasses
+  - - !cat
+      - rdma-core
+      - arch=linux-centos8-skylake_avx512
+      - !spec 
+        compiler: !system_compiler
+      - !spec
+        depends: python@3.8

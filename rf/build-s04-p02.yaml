@@ -22,12 +22,16 @@ spack:
         - gcc
         blacklist:
         - *gcc-back
+        #! why is the following commented out? 
         #! core_compilers:
         #! - *gcc-back
         # we set python and R dependents as core_specs because you can move it later with "osp modules"
         #! dev: default openmpi is not working very well
         core_specs:
-        - '^mpi^python' 
+        - 'openmpi'
+        # ! we changed the projections below. and commented the following items. 
+        # !   are we moving items later with osp modules?
+        #! - '^mpi^python' 
         - '^python'
         - '^r'
         # the folllowing items (hash_length, blacklist_implicits, etc) do not work above in the lmod
@@ -37,7 +41,13 @@ spack:
         projections:
           # if we do not specify the projection, the hierarchical lmod feature will add hashes
           # module naming convention is upstream of "osp modules" so beware
-          # deprecated: ^mpi^python: 'py-{^python.version}/{name}/{version}'
+          # the "osp modules" method moves the modules around to (try to) make the tree more intuitive
+          # we place openmpi first because it depends on python but we do not want it to be tethered
+          #   to python otherwise we end up with circular dependencies (in the tree) for python packages
+          #   that also depend on openmpi. without this trick, you would have to select a Python version
+          #   *before* you select openmpi, and it would increase the combinations we have to compile
+          openmpi: '{name}/{version}'
+          ~openmpi^python: 'py-{^python.version}-{compiler.name}-{compiler.version}/{name}/{version}'
           ^python: 'py-{^python.version}-{compiler.name}-{compiler.version}/{name}/{version}'
           ^r: 'r-{^r.version}/{name}/{version}'
           all: '{name}/{version}'
@@ -53,6 +63,26 @@ spack:
       externals:
       - prefix: /cm/shared/apps/slurm/current
         spec: slurm@20-11-9-1
+    rdma-core:
+      buildable: false
+      externals:
+      - prefix: |
+          /apps/support/c/linux-centos8-skylake_avx512
+          /gcc-8.3.1/rdma-core-41.0-5gm3ivsvtzuu5cgynhv4eycwyglvt2zz
+        spec: rdma-core@41.0%gcc@8.3.1~ipo
+    #! hcoll:
+    #!   buildable: false
+    #!   externals:
+    #!   - prefix: /opt/mellanox/hcoll
+    #!     spec: hcoll@4.5.3045 concretizer:
+  concretizer:
+    #! unify: true
+    #! unify: when_possible
+    # unify false was formerly concretize together
+    # docs recommend false for HPC groups, see https://spack.readthedocs.io/en/latest/environments.html
+    unify: false
+    reuse: true
+  # note that software in this superspec is built for spack v0.19
   specs: !flatten
   # compiler: gcc 10
   - - - &gcc12 !cat
@@ -77,6 +107,13 @@ spack:
         - &r422 !cat
           - r@4.2.2
           - !spec {depends: *py3108}
+      # new feature in a recent spack is concretize:unify in which spack prevents redundancy. for example, 
+      #   if you try to install openblas here, then later build python and py-numpy dependent on the
+      #   intel-oneapi-mkl package, you see:
+      #     Error: Spec cannot include multiple providers for virtual 'blas' Requested 'intel-oneapi-mkl' 
+      #       and 'openblas'. Consider setting `concretizer:unify` to `when_possible` or `false` to relax the 
+      #       concretizer strictness.
+      #   this feature might overlap with some (but not all) of the purpose of overspack
       # openblas
       - - &blas0319 !cat
           - openblas@0.3.19
@@ -95,21 +132,28 @@ spack:
     # mpi: openmpi 4
     - - &ompi4 !cat
         - &ompi4-base !cat
-          - openmpi@3.1.6
+          - openmpi@4.1.2
           # see modification to spack source with a path change to solve the perpetual problem
           #   of not finding infiniband include files: env.prepend_path('CPATH','/usr/include/infiniband/')
-          - &ompi-variants +atomics ~cuda ~cxx ~cxx_exceptions +gpfs ~internal-hwloc ~java +legacylaunchers
+          - &ompi-variants +atomics ~cuda ~cxx ~cxx_exceptions ~gpfs ~internal-hwloc ~java +legacylaunchers
             ~lustre ~memchecker +pmi +romio +rsh ~singularity 
-            fabrics=auto schedulers=slurm
+            fabrics=hcoll,ucx,ofi,cma schedulers=slurm
+          # note significant tuning to achieve the correct performance
+        - !spec {depends: ucx +verbs +cma +dc +dm +knem +mlx5_dv +openmp +rdmacm +thread_multiple +ud}
+        - !spec {depends: slurm +pmix}
+        - !spec {depends: &libfabric 'libfabric fabrics=tcp,verbs,udp,shm,rxd,rxm'}
         # openmpi depends on rdma depends on py-docutils hence we have to set a python version
-        - !spec {depends: *py3108}
+        # - !spec {depends: 'py-docutils ^python@3.6.8'}
+        #! - !spec {depends: *py3108}
         - !spec {compiler: *gcc12}
-#!    - - &intel-oneapi-mkl !cat
-#!        # continue without the cluster option because it causes a "cannot depend twice" error when you
-#!        #   compile py-numpy against this mkl, due to openmpi depending on rdma-core. see comment below
-#!        #   about py-numpy and MKL. we will have to wait for cluster features (scalapack, blacs, etc)
-#!        - &intel-oneapi-mkl-base intel-oneapi-mkl ~cluster ~ilp64 +shared ^intel-oneapi-tbb 
-#!        # removed due to "cannot depend twice" error: - !spec {depends: *ompi3}
+    - - &intel-oneapi-mkl !cat
+        #! ...!!! still?
+        # continue without the cluster option because it causes a "cannot depend twice" error when you
+        #   compile py-numpy against this mkl, due to openmpi depending on rdma-core. see comment below
+        #   about py-numpy and MKL. we will have to wait for cluster features (scalapack, blacs, etc)
+        - &intel-oneapi-mkl-base intel-oneapi-mkl +cluster ~ilp64 +shared ^intel-oneapi-tbb 
+        # removed due to "cannot depend twice" error: 
+        - !spec {depends: *ompi4}
 #!    # openmpi-dependent packages
 #!    - !loop_depends
 #!      base: *ompi3
@@ -120,23 +164,31 @@ spack:
 #!      - !cat 
 #!        - fftw@3.3.10
 #!        - &fftw-base +mpi +openmp ~pfft_patches precision=double,float
-#!    # packages compiled for python 3.9.9
-#!    - !loop_depends
-#!      base: *py3108
-#!      specs: &py-mods-compiled
-#!      - py-setuptools
-#!      - py-wheel
-#!      - py-pip
-#!      - py-cython
-#!      # note that py-numpy should use MKL over openblas for performance on intel systems. when attempting
-#!      #   to use MKL with +cluster we have major issues getting spack to avoid the "cannot depend twice"
-#!      #   issue because of the dependency chain py-numpy, intel-oneapi-mkl +cluster, openmpi, rmda-core,
-#!      #   py-docutils, python. this chain prevents us from having one openmpi that serves multiple python
-#!      #   and py-numpy installations. so we discard ~cluster and with it build-s01-p02b.yaml for now until
-#!      #   spack fixes this issue. see https://github.com/spack/spack/issues/19782
-#!      - !cat 
-#!        - py-numpy                                                                                            
-#!        - !spec {depends: *intel-oneapi-mkl-base}
+    # packages compiled for python 3.10.8
+    - !loop_depends
+      base: *py3108
+      specs: &py-mods-compiled
+      - &pysetup py-setuptools@59.4.0
+      - py-wheel
+      - py-pip
+      - &py-cython !cat [py-cython, !spec {depends: *pysetup}]
+      # note that py-numpy should use MKL over openblas for performance on intel systems. when attempting
+      #   to use MKL with +cluster we have major issues getting spack to avoid the "cannot depend twice"
+      #   issue because of the dependency chain py-numpy, intel-oneapi-mkl +cluster, openmpi, rmda-core,
+      #   py-docutils, python. this chain prevents us from having one openmpi that serves multiple python
+      #   and py-numpy installations. so we discard ~cluster and with it build-s01-p02b.yaml for now until
+      #   spack fixes this issue. see https://github.com/spack/spack/issues/19782
+      - !cat 
+        - py-numpy +blas +lapack
+        # nb using concretize, unify means we do not need to specify this explicitly, however rbradley 
+        #   forsees a problem where we might need to relax this later, and we would want to be flexible
+        #! - !spec {depends: 'intel-oneapi-mkl /3ffyahg'}
+        - !spec {depends: *intel-oneapi-mkl}
+        - !spec {depends: *py3108}
+        - !spec {depends: *pysetup}
+        #! - !spec {depends: 'openmpi /ybdy4ht'}
+        #! - !spec {depends: *ompi4}
+        #! - !spec {depends: 'py-docutils /tlvshnr'}
 #!    # packages depends on openblas
 #!    - !loop_depends
 #!      base: *blas0319
