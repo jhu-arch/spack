@@ -7,6 +7,7 @@
 import platform
 
 from spack.package import *
+from spack.util.environment import EnvironmentModifications
 
 
 @IntelOneApiPackage.update_description
@@ -132,6 +133,18 @@ class IntelOneapiMkl(IntelOneApiLibraryPackage):
             flag = "-Wl,-rpath,{0}".format(d)
             env.append_path("__INTEL_POST_CFLAGS", flag, separator=" ")
             env.append_path("__INTEL_POST_FFLAGS", flag, separator=" ")
+
+        # rbradley customizes this for Rockfish. we get an error when using numpy:
+        #   libmkl_intel_thread.so.2: undefined symbol: omp_get_num_procs
+        #   and this can be solved by source vars.sh for the compiler component
+        #   even when we compile with gcc for example
+        compiler_component_prefix = self.prefix.join(
+            join_path("compiler", self.spec.version))
+        env.extend(
+            EnvironmentModifications.from_sourcing_file(
+                join_path(compiler_component_prefix,"env","vars.sh")
+            )
+        )
 
     def setup_dependent_build_environment(self, env, dependent_spec):
         env.set("MKLROOT", self.component_prefix)
