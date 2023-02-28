@@ -1,3 +1,6 @@
+# BUILD 
+# build series s04 part 01 
+# compile gcc 12
 spack:
   # CUSTOM MODULES
   # these modifications blacklist the system compiler to make Core packages

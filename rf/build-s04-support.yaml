@@ -1,8 +1,15 @@
-# USE spack to build external dependencies to resolve cyclical or circular dependencies
+# USE spack for external dependencies
+# USAGE see overspack/README.md#double-spack
+# this step can compile extra items that exist outside of the spack tree 
+#   to resolve versioning issues or simply pin the tree
 spack:
   specs:
   # beware that we use lists of lists
-  # nb that I tried and failed to use external python for this, due to a pip issue related to dataclasses
+  # install rdma-core externally
+  #   note that this was part of a failed attempt to fix an apparent
+  #   circular dependency in py-numpy ^intel-oneapi-mkl circa 2023.02.23
+  #   but the issue was elsewhere
+  # DEPRECATED: this item is no longer necessary
   - - !cat
       - rdma-core
       - arch=linux-centos8-skylake_avx512
